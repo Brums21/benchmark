@@ -51,6 +51,7 @@ if [ ! -d "SNAP-master" ]; then
     echo "Instaling SNAP..."
     wget https://github.com/KorfLab/SNAP/archive/refs/heads/master.zip -O SNAP.zip
     unzip SNAP.zip
+    rm SNAP.zip
 else
     echo "SNAP is already installed. Skipping..."
 fi
