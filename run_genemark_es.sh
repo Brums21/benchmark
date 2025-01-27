@@ -1,18 +1,18 @@
 #!/bin/bash
 
-$SPECIES_FOLDER = "./../species"
+SPECIES_FOLDER="./../species" 
 
-mkdir results/GeneMark-ES
+mkdir -p results/GeneMark-ES
 
-cd gmes_linux_64
-# initialize GeneMark-ES
-
+cd gmes_linux_64 
 
 for SPECIES in "$SPECIES_FOLDER"/*; do
     if [ -d "$SPECIES" ]; then
         echo "Species being processed: $SPECIES"
 
-        DNA_FILE="$SPECIES/$SPECIES_dna.fa"
+        DNA_FILE="$SPECIES/$(basename "$SPECIES")_dna.fa"
+
+        gmes_petap.pl --sequence $DNA_FILE --ES
 
     fi
 done
