@@ -1,10 +1,8 @@
 #!/bin/bash
 
-SPECIES_FOLDER="./../species" 
+SPECIES_FOLDER="../../species"
 
-mkdir -p results/GeneMark-ES
-
-cd gmes_linux_64 
+mkdir -p results/GeneMark-ES; cd results/GeneMark-ES;
 
 for SPECIES in "$SPECIES_FOLDER"/*; do
     if [ -d "$SPECIES" ]; then
@@ -12,7 +10,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
 
         DNA_FILE="$SPECIES/$(basename "$SPECIES")_dna.fa"
 
-        gmes_petap.pl --sequence $DNA_FILE --ES
+        ../../gmes_linux_64/gmes_petap.pl --sequence $DNA_FILE --ES
 
     fi
 done
