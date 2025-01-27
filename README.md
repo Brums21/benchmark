@@ -16,4 +16,4 @@ The file `get_tools.sh` allows to download all tools, except for GeneMark-ES and
 
 5. Unzip the license key: `gunzip gm_key_64.gz`
 
-6. Place the license key in the root folder of the software: `mv gm_key_64 gmes_linux_64/`
+6. Place the license key in the home folder: `cp gm_key ~/.gm_key`
