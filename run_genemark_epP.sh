@@ -25,7 +25,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         DNA_FILE="$SPECIES/$(basename "$SPECIES")_dna.fa"
 
         # run prothint for the species
-        ../../gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE proteins.fasta
+        ../../gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE Eukaryota.fa
 
         # run genemark-ep+
         ../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq $DNA_FILE
