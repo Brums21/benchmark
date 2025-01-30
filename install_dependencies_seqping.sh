@@ -28,18 +28,6 @@ wget https://ccb.jhu.edu/software/glimmerhmm/dl/GlimmerHMM-3.0.4.tar.gz -O glimm
 tar -xzf glimmerhmm.tar.gz
 echo "GlimmerHMM installed successfully."
 
-# Install AUGUSTUS
-echo "Installing AUGUSTUS..."
-wget https://bioinf.uni-greifswald.de/augustus/binaries/augustus-3.4.0.tar.gz -O augustus.tar.gz
-tar -xzf augustus.tar.gz
-echo "AUGUSTUS installed successfully."
-
-# Install SNAP
-echo "Installing SNAP..."
-wget http://korflab.ucdavis.edu/Software/snap-2020-11-29.tar.gz -O snap.tar.gz
-tar -xzf snap.tar.gz
-echo "SNAP installed successfully."
-
 # Install MAKER
 echo "Installing MAKER..."
 wget http://weatherby.genetics.utah.edu/maker_downloads/53AF/7A0F/1DB0/C1A7F3826EC06B88F0A0515FC93C/maker-2.31.11.tgz -O maker.tar.gz
