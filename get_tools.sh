@@ -3,7 +3,7 @@
 # Check if wget and unzip are installed
 command -v wget >/dev/null 2>&1 || { 
     echo "wget is required but not installed. Installing..."; 
-    apt-get install unzip;
+    apt-get install wget;
 }
 command -v unzip >/dev/null 2>&1 || { 
     echo "Unzip is required but not installed. Installing...";
@@ -30,6 +30,11 @@ if [ ! -d "Augustus-3.5.0" ]; then
     wget https://github.com/Gaius-Augustus/Augustus/archive/refs/tags/v3.5.0.tar.gz -O Augustus-3.5.0.tar.gz
     tar -xvzf Augustus-3.5.0.tar.gz
     rm Augustus-3.5.0.tar.gz
+
+    # make augustus
+    cd Augustus-3.5.0
+    make augustus
+    cd ..
 else
     echo "AUGUSTUS is already installed. Skipping..."
 fi
@@ -72,3 +77,4 @@ else
 fi 
 
 echo -e "\n\nFinished installing all tools"
+

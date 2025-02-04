@@ -1,0 +1,4 @@
+arabidopsis_thaliana=arabidopsis
+gossypium_raimondii=arabidopsis
+manihot_esculenta=arabidopsis
+oryza_sativa=maize
