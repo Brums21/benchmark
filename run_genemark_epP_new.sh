@@ -1,115 +1,75 @@
 #!/bin/bash
 
-# Notas: para correr GeneMark-EP+, a ferramenta ProtHint é necessária, e vem incluida na pasta do gmes_linux_64
-# De modo a criar differentes tipos de hints, o script hints_generator.sh vai buscar sequencias de proteinas para 
-# espécies escolhidas com diferentes graus de género e ordem, quando disponivel. Mais informação no comentário
-# do script.
+# Notas: para correr GeneMark-EP+, a ferramenta ProtHint é necessária, e vem incluida na pasta do gmes_linux_64.
+# O script hints_generator.sh gera sequências de proteínas para diferentes níveis taxonômicos (gênero, ordem, etc.).
+# Mais informações podem ser encontradas nos comentários do script.
 
 SPECIES_FOLDER="../../species"
 
-# Generate all hints
 if [ ! -d "hints" ]; then
     echo "Generating all hints to be used as input."
     ./hints_generator.sh
 else
-    echo "Hints already generated. Skipping... "
+    echo "Hints already generated. Skipping..."
 fi
 
 mkdir -p results/GeneMark-EPp
-cd results/GeneMark-EPp || exit
+cd results/GeneMark-EPp || exit 1
 
-# Executar GeneMark-EP+ para todas as espécies
-for SPECIES in "$SPECIES_FOLDER"/*; do
-    if [ -d "$SPECIES" ]; then
+runTimedCommand() {
+    local CMD="$1"
+    local OUTPUT_FILE="$2"
+    local TIME_MEM_FILE="$3"
 
-        SPECIES_NAME=$(basename "$SPECIES")
-        echo "Processing species: $SPECIES_NAME"
-        DNA_FILE="$SPECIES/${SPECIES_NAME}_dna.fa"
+    (/usr/bin/time -f "%e\t%M" bash -c "$CMD") > "$OUTPUT_FILE" 2> "$TIME_MEM_FILE"
+}
 
-        if [ ! -f "$DNA_FILE" ]; then
-            echo "DNA file not found for species: $SPECIES_NAME. Skipping..."
-            continue
-        fi
+runGeneMarkEPp() {
+    local HINTS_TYPE="$1"
+    local SPECIES_NAME="$2"
+    local DNA_FILE="$3"
+    local HINTS_FILE="../../../hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
 
-        mkdir -p "$SPECIES_NAME"
-        cd "$SPECIES_NAME" || exit 1
+    if [ -f "$HINTS_FILE" ]; then
+        mkdir -p "$HINTS_TYPE"
+        cd "$HINTS_TYPE" || exit 1
 
-        if [ -f "../../../hints/${SPECIES_NAME}_genus.fa"]; then
-            mkdir -p "genus"
-            cd "genus" || exit 1
+        echo "Running ProtHint for $SPECIES_NAME with $HINTS_TYPE hints..."
+        runTimedCommand "../../../../gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
+            "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" \
+            "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
 
-            HINTS_FILE=$(basename "../../../../hints/${SPECIES_NAME}_genus.fa")
-
-            echo "Running ProtHint for $SPECIES_NAME with hints of the same genus..."
-            ../../../../gmes_linux_64/ProtHint/bin/prothint.py "$DNA_FILE" "$HINTS_FILE"
-
-            start_time=$(date +%s)
-
-            echo "Running GeneMark-EP+ for $SPECIES_NAME..."
-            ../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq "$DNA_FILE" --cores 10
-
-            end_time=$(date +%s)
-            elapsed_time=$((end_time - start_time))
-
-            echo "Process took $elapsed_time seconds." > "${SPECIES_NAME}_genus_time.txt"
-            echo "Elapsed time for ${SPECIES_NAME}_genus: $elapsed_time seconds."
-
-            cd ..
-
-        fi
-
-        if [ -f "../../../hints/${SPECIES_NAME}_order.fa"]; then
-            mkdir -p "order"
-            cd "order" || exit 1
-
-            HINTS_FILE=$(basename "../../../../hints/${SPECIES_NAME}_order.fa")
-
-            echo "Running ProtHint for $SPECIES_NAME with hints of the same order..."
-            ../../../../gmes_linux_64/ProtHint/bin/prothint.py "$DNA_FILE" "$HINTS_FILE"
-
-            start_time=$(date +%s)
-
-            echo "Running GeneMark-EP+ for $SPECIES_NAME..."
-            ../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq "$DNA_FILE" --cores 10
-
-            end_time=$(date +%s)
-            elapsed_time=$((end_time - start_time))
-
-            echo "Process took $elapsed_time seconds." > "${SPECIES_NAME}_order_time.txt"
-            echo "Elapsed time for ${SPECIES_NAME}_order: $elapsed_time seconds."
-
-            cd ..
-
-        fi
-
-        if [ -f "../../../hints/${SPECIES_NAME}_far.fa"]; then
-   
-            mkdir -p "far"
-            cd "far" || exit 1
-
-            HINTS_FILE=$(basename "../../../../hints/${SPECIES_NAME}_far.fa")
-
-            echo "Running ProtHint for $SPECIES_NAME with hints from species that are far..."
-            ../../../../gmes_linux_64/ProtHint/bin/prothint.py "$DNA_FILE" "$HINTS_FILE"
-
-            start_time=$(date +%s)
-
-            echo "Running GeneMark-EP+ for $SPECIES_NAME..."
-            ../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq "$DNA_FILE" --cores 10
-
-            end_time=$(date +%s)
-            elapsed_time=$((end_time - start_time))
-
-            echo "Process took $elapsed_time seconds." > "${SPECIES_NAME}_far_time.txt"
-            echo "Elapsed time for ${SPECIES_NAME}_far: $elapsed_time seconds."
-
-            cd ..
-
-        fi
+        echo "Running GeneMark-EP+ for $SPECIES_NAME with $HINTS_TYPE hints..."
+        runTimedCommand "../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq $DNA_FILE --cores 10" \
+            "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
+            "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
         cd ..
-
+    else
+        echo "Hints file for ${SPECIES_NAME}_${HINTS_TYPE} not found. Skipping..."
     fi
+}
+
+for SPECIES in "$SPECIES_FOLDER"/*; do
+    [ -d "$SPECIES" ] || continue 
+
+    SPECIES_NAME=$(basename "$SPECIES")
+    echo "Processing species: $SPECIES_NAME"
+    DNA_FILE="$SPECIES/${SPECIES_NAME}_dna.fa"
+
+    if [ ! -f "$DNA_FILE" ]; then
+        echo "DNA file not found for species: $SPECIES_NAME. Skipping..."
+        continue
+    fi
+
+    mkdir -p "$SPECIES_NAME"
+    cd "$SPECIES_NAME" || exit 1
+
+    runGeneMarkEPp "genus" "$SPECIES_NAME" "$DNA_FILE"
+    runGeneMarkEPp "order" "$SPECIES_NAME" "$DNA_FILE"
+    runGeneMarkEPp "far" "$SPECIES_NAME" "$DNA_FILE"
+
+    cd ..
 done
 
 cd ../..

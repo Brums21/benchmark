@@ -2,8 +2,8 @@
 
 SPECIES_FOLDER="../../species"
 
-mkdir -p results/GeneMark-ES
-cd results/GeneMark-ES || exit 1
+mkdir -p results/seqping
+cd results/seqping || exit 1
 
 runTimedCommand() {
     local CMD="$1"
