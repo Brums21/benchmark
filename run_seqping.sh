@@ -23,6 +23,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     cd "$SPECIES_NAME" || exit 1
 
     DNA_FILE="../$SPECIES/${SPECIES_NAME}_dna.fa"
+    TRANSCRIPTOME_FILE="../$SPECIES/${SPECIES_NAME}_RNA.fastq"
 
     if [ ! -f "$DNA_FILE" ]; then
         echo "Warning: DNA file $DNA_FILE not found, skipping..."
@@ -30,11 +31,18 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         continue
     fi
 
-    echo "Running GeneMark-ES for $SPECIES_NAME..."
+    echo "Running Seqping for $SPECIES_NAME..."
 
-    runTimedCommand "../../../gmes_linux_64/gmes_petap.pl --sequence $DNA_FILE --ES --cores 10" \
-        "${SPECIES_NAME}_genemark_output.txt" \
-        "${SPECIES_NAME}_genemark_time_mem.txt"
+    runTimedCommand "../../../seqping_0.1.45.1/seqping.sh \
+        -t ${TRANSCRIPTOME_FILE} \
+        -g ${DNA_FILE} \
+        -r ../../../seqping_0.1.45.1/raw/refprotein_20150708.faa \
+        -f ../../../seqping_0.1.45.1/raw/repeats.fna \
+        -m ../../../seqping_0.1.45.1/raw/GyDB_V2_All.hmm \
+        -o . \
+        -p 10 "\
+        "${SPECIES_NAME}_seqping_output.txt" \
+        "${SPECIES_NAME}_seqping_time_mem.txt"
 
     cd ..
 done

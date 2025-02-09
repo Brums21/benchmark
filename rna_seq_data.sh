@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function getRNAData(){
+function generator(){
 
     local SPECIES="$1"
 
@@ -19,7 +19,6 @@ function getRNAData(){
 
     echo "Found the following small RNA sequencing datasets:"
     echo "$SHORT_READS"
-    echo "$SHORT_READS" >> ${OUTPUT_DIR}/RNA.txt
 
     for RUN_ID in $SHORT_READS; do
         echo "Downloading small RNA-seq data for $RUN_ID..."
@@ -33,10 +32,35 @@ function getRNAData(){
 
     done
 
+    generateConfigFile "genus" "$SPECIES" "${RUN_ID}"
+    generateConfigFile "order" "$SPECIES" "${RUN_ID}"
+    generateConfigFile "far" "$SPECIES" "${RUN_ID}"
+
     rm sra_metadata.csv
 
     echo "All requested small RNA-seq data has been downloaded to: $OUTPUT_DIR"
 
+}
+
+function generateConfigFile(){
+    local HINTS_TYPE="$1"
+    local SPECIES="$2"
+    local RUN_ID="$3"
+    local HINTS_FILE="hints/${SPECIES}_${HINTS_TYPE}.fa"
+
+    if [ -f "$HINTS_FILE" ]; then
+
+        echo -e "---\n\
+species: ${SPECIES}\n\
+genome_path: species/${SPECIES}/${SPECIES}_dna.fa\n\
+rnaseq_sets: [ \n\
+    ${RUN_ID}\n\
+]\n\
+protdb_path: hints/${SPECIES}_far.fa" >> species/${SPECIES}/${SPECIES}_${HINTS_TYPE}.yaml
+
+    else
+        echo "Hints file for ${SPECIES_NAME}_${HINTS_TYPE} not found. Skipping..."
+    fi
 }
 
 for SPECIES in "species"/*; do
@@ -45,6 +69,6 @@ for SPECIES in "species"/*; do
     SPECIES_NAME=$(basename "$SPECIES")
     echo "Getting RNA data for species: $SPECIES_NAME"
 
-    getRNAData $SPECIES_NAME
+    generator $SPECIES_NAME
 
 done
