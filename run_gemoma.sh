@@ -15,8 +15,7 @@ cd results/GeMoMa || exit 1
 runGeMoMa() {
     local HINTS_TYPE="$1"
     local SPECIES_NAME="$2"
-    local DNA_FILE="$3"
-    local MODEL_NAME="$4"
+    local MODEL_NAME="$3"
 
     if [ ! "$MODEL_NAME" = "none" ]; then
         mkdir -p "$HINTS_TYPE"
@@ -24,10 +23,10 @@ runGeMoMa() {
 
         echo "Running GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} reference model: ${MODEL_NAME}..."
 
-        /usr/bin/time -f "%e\t%M" \
-            ./../../../../GeMoMa/pipeline.sh mmseqs ../../${DNA_FILE} \
-            ../../../../reference_species/${MODEL_NAME}/${MODEL_NAME}_annotation.gff3 \
-            ../../../../reference_species/${MODEL_NAME}/${MODEL_NAME}_dna.fa 10 . \
+        /bin/time -f "%e\t%M" \
+            ./../../../../../GeMoMa/pipeline.sh mmseqs ../input.fa \
+            ../../../../../reference_species/${MODEL_NAME}/${MODEL_NAME}_annotation.gff3 \
+            ../../../../../reference_species/${MODEL_NAME}/${MODEL_NAME}_dna.fa 10 . \
             > "${SPECIES_NAME}_${HINTS_TYPE}_output.txt" \
             2> "${SPECIES_NAME}_${HINTS_TYPE}_time_mem.txt"
 
@@ -54,9 +53,25 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     GENUS_MODEL=$(eval echo "\$${SPECIES_NAME}_genus" | tr -d '[:space:]')
     ORDER_MODEL=$(eval echo "\$${SPECIES_NAME}_order" | tr -d '[:space:]')
 
-    runGeMoMa "far" "$SPECIES_NAME" "$DNA_FILE" "$FAR_MODEL"
-    runGeMoMa "genus" "$SPECIES_NAME" "$DNA_FILE" "$GENUS_MODEL"
-    runGeMoMa "order" "$SPECIES_NAME" "$DNA_FILE" "$ORDER_MODEL"
+    for MUTATION_RATE in original 0.01 0.04 0.07; do
+        mkdir -p "mr_${MUTATION_RATE}"
+        cd "mr_${MUTATION_RATE}" || exit 1
+
+        if [ "$MUTATION_RATE" != "original" ]; then
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+        else
+            cp ../../../../$DNA_FILE input.fa
+        fi
+
+        runGeMoMa "far" "$SPECIES_NAME" "$FAR_MODEL"
+        runGeMoMa "genus" "$SPECIES_NAME" "$GENUS_MODEL"
+        runGeMoMa "order" "$SPECIES_NAME" "$ORDER_MODEL"
+
+        rm input.fa
+
+        cd ..
+
+    done
 
     cd ..
 done

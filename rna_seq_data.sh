@@ -52,7 +52,7 @@ function generateConfigFile(){
 
         echo -e "---\n\
 species: ${SPECIES}\n\
-genome_path: species/${SPECIES}/${SPECIES}_dna.fa\n\
+genome_path: input.fa\n\
 rnaseq_sets: [ \n\
     ${RUN_ID}\n\
 ]\n\

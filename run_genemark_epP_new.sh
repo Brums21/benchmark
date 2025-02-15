@@ -27,20 +27,19 @@ runTimedCommand() {
 runGeneMarkEPp() {
     local HINTS_TYPE="$1"
     local SPECIES_NAME="$2"
-    local DNA_FILE="$3"
-    local HINTS_FILE="../../../hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
+    local HINTS_FILE="../../../../hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
 
     if [ -f "$HINTS_FILE" ]; then
         mkdir -p "$HINTS_TYPE"
         cd "$HINTS_TYPE" || exit 1
 
         echo "Running ProtHint for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
+        runTimedCommand "../../../../../gmes_linux_64/ProtHint/bin/prothint.py input.fa $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
 
         echo "Running GeneMark-EP+ for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq $DNA_FILE --cores 10" \
+        runTimedCommand "../../../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq input.fa --cores 10" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
@@ -65,11 +64,28 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     mkdir -p "$SPECIES_NAME"
     cd "$SPECIES_NAME" || exit 1
 
-    runGeneMarkEPp "genus" "$SPECIES_NAME" "$DNA_FILE"
-    runGeneMarkEPp "order" "$SPECIES_NAME" "$DNA_FILE"
-    runGeneMarkEPp "far" "$SPECIES_NAME" "$DNA_FILE"
+    for MUTATION_RATE in original 0.01 0.04 0.07; do
+        mkdir -p "mr_${MUTATION_RATE}"
+        cd "mr_${MUTATION_RATE}" || exit 1
+
+        if [ "$MUTATION_RATE" != "original" ]; then
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+        else
+            cp ../../../../$DNA_FILE input.fa
+        fi
+
+        runGeneMarkEPp "genus" "$SPECIES_NAME"
+        runGeneMarkEPp "order" "$SPECIES_NAME"
+        runGeneMarkEPp "far" "$SPECIES_NAME"
+
+        rm input.fa
+
+        cd ..
+
+    done
 
     cd ..
+    
 done
 
 cd ../..

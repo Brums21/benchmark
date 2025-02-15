@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Create a directory for the tools
-mkdir -p seqping_dependencies
-cd seqping_dependencies
+mkdir -p dependencies
+cd dependencies
 
 # Install BLAST
 echo "Installing BLAST..."
@@ -57,5 +57,11 @@ echo "Installing NCBI C++ Toolkit..."
 wget https://ftp.ncbi.nih.gov/toolbox/ncbi_tools++/ARCHIVE/2021/Sep_30_2021/ncbi_cxx--25_2_0.tar.gz -O ncbi_toolkit.tar.gz
 tar -xzf ncbi_toolkit.tar.gz
 echo "NCBI C++ Toolkit installed successfully."
+
+# Install Alcor
+echo "Installing Alcor"
+wget https://github.com/cobilab/alcor/archive/refs/tags/v1.9.tar.gz -O alcor.tar.gz
+tar -xzf alcor.tar.gz
+echo "Alcor installed successfully."
 
 echo "All dependencies installed successfully!"
