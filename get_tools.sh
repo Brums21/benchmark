@@ -10,6 +10,9 @@ command -v unzip >/dev/null 2>&1 || {
     apt-get install unzip;
 }
 
+mkdir -p tools
+cd tools || exit 1
+
 # GeneMark-ETP
 echo -e "\n\nGeneMark-ETP ------------------------------------------------------"
 if [ ! -d "GeneMark-ETP" ]; then
@@ -75,6 +78,8 @@ if [ ! -d "GeMoMa" ]; then
 else 
     echo "GeMoMa is already installed. Skipping..."
 fi 
+
+cd ..
 
 echo -e "\n\nFinished installing all tools"
 

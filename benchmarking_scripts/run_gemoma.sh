@@ -9,8 +9,8 @@ if [ ! -f "$GEMOMA_REFERENCE" ]; then
 fi
 source "$GEMOMA_REFERENCE"
 
-mkdir -p results/GeMoMa
-cd results/GeMoMa || exit 1
+mkdir -p ../results/GeMoMa
+cd ../results/GeMoMa || exit 1
 
 runGeMoMa() {
     local HINTS_TYPE="$1"
@@ -24,7 +24,7 @@ runGeMoMa() {
         echo "Running GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} reference model: ${MODEL_NAME}..."
 
         /bin/time -f "%e\t%M" \
-            ./../../../../../GeMoMa/pipeline.sh mmseqs ../input.fa \
+            ./../../../../../tools/GeMoMa/pipeline.sh mmseqs ../input.fa \
             ../../../../../reference_species/${MODEL_NAME}/${MODEL_NAME}_annotation.gff3 \
             ../../../../../reference_species/${MODEL_NAME}/${MODEL_NAME}_dna.fa 10 . \
             > "${SPECIES_NAME}_${HINTS_TYPE}_output.txt" \
@@ -58,9 +58,9 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../$DNA_FILE > input.fa
         else
-            cp ../../../../$DNA_FILE input.fa
+            cp ../../$DNA_FILE input.fa
         fi
 
         runGeMoMa "far" "$SPECIES_NAME" "$FAR_MODEL"

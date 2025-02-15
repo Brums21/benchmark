@@ -2,8 +2,8 @@
 
 SPECIES_FOLDER="../../species"
 
-mkdir -p results/GeneMark-ES
-cd results/GeneMark-ES || exit 1
+mkdir -p ../results/GeneMark-ES
+cd ../results/GeneMark-ES || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -37,12 +37,12 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../$DNA_FILE > input.fa
         else
-            cp ../../../../$DNA_FILE input.fa
+            cp ../$DNA_FILE input.fa
         fi
 
-        runTimedCommand "../../../../gmes_linux_64/gmes_petap.pl --sequence input.fa --ES --cores 10" \
+        runTimedCommand "../../../../tools/gmes_linux_64/gmes_petap.pl --sequence input.fa --ES --cores 10" \
             "${SPECIES_NAME}_genemark_output.txt" \
             "${SPECIES_NAME}_genemark_time_mem.txt"
 

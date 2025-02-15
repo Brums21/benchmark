@@ -2,8 +2,8 @@
 
 SPECIES_FOLDER="../../species"
 
-mkdir -p results/GeneMark-ETP
-cd results/GeneMark-ETP || exit 1
+mkdir -p ../results/GeneMark-ETP
+cd ../results/GeneMark-ETP || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -19,10 +19,16 @@ runGeneMarkETP() {
     local MUTATION_RATE="$3"
     local HINTS_FILE="../../../../species/${SPECIES_NAME}/${SPECIES_NAME}_${HINTS_TYPE}.yaml"
 
+    DNA_FILE="../../../../species/${SPECIES_NAME}/${SPECIES_NAME}_dna.fa"
+    if [ ! -f "$DNA_FILE" ]; then
+        echo "DNA file not found for species: ${SPECIES_NAME}. Skipping..."
+        return 1
+    fi
+
     if [ "$MUTATION_RATE" != "original" ]; then
-        AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+        AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:$DNA_FILE > input.fa
     else
-        cp ../../../../$DNA_FILE input.fa
+        cp $DNA_FILE input.fa
     fi
 
     if [ -f "$HINTS_FILE" ]; then
@@ -30,7 +36,7 @@ runGeneMarkETP() {
         cd "$HINTS_TYPE" || exit 1
 
         echo "Running GeneMark-ETP for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../GeneMark-ETP/bin/gmetp.pl --cores 10 --cfg ../${HINTS_FILE}" \
+        runTimedCommand "../../../../../tools/GeneMark-ETP/bin/gmetp.pl --cores 10 --cfg ../${HINTS_FILE}" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 

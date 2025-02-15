@@ -2,8 +2,8 @@
 
 SPECIES_FOLDER="../../species"
 
-mkdir -p results/seqping
-cd results/seqping || exit 1
+mkdir -p ../results/seqping
+cd ../results/seqping || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -39,17 +39,17 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../$DNA_FILE > input.fa
         else
-            cp ../../../../$DNA_FILE input.fa
+            cp ../$DNA_FILE input.fa
         fi
 
-        runTimedCommand "../../../../seqping_0.1.45.1/seqping.sh \
-            -t ${TRANSCRIPTOME_FILE} \
+        runTimedCommand "../../../../tools/seqping_0.1.45.1/seqping.sh \
+            -t ../${TRANSCRIPTOME_FILE} \
             -g input.fa \
-            -r ../../../../seqping_0.1.45.1/raw/refprotein_20150708.faa \
-            -f ../../../../seqping_0.1.45.1/raw/repeats.fna \
-            -m ../../../../seqping_0.1.45.1/raw/GyDB_V2_All.hmm \
+            -r ../../../../tools/seqping_0.1.45.1/raw/refprotein_20150708.faa \
+            -f ../../../../tools/seqping_0.1.45.1/raw/repeats.fna \
+            -m ../../../../tools/seqping_0.1.45.1/raw/GyDB_V2_All.hmm \
             -o . \
             -p 10 "\
             "${SPECIES_NAME}_seqping_output.txt" \

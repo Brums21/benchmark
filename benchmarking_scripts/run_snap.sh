@@ -2,8 +2,8 @@
 
 SPECIES_FOLDER="../../species"
 
-mkdir -p results/SNAP
-cd results/SNAP || exit 1
+mkdir -p ../results/SNAP
+cd ../results/SNAP || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -32,12 +32,12 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../../$DNA_FILE > input.fa
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
         else
-            cp ../../../../../$DNA_FILE input.fa
+            cp ../../../$DNA_FILE input.fa
         fi
 
-        runTimedCommand "./../../../../../SNAP-master/snap A.thaliana.hmm input.fa" \
+        runTimedCommand "./../../../../../tools/SNAP-master/snap A.thaliana.hmm input.fa" \
             "${SPECIES_NAME}_a_thaliana_output.txt" \
             "${SPECIES_NAME}_a_thaliana_time_mem.txt"
 
@@ -58,12 +58,12 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../../$DNA_FILE > input.fa
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
         else
-            cp ../../../../../$DNA_FILE input.fa
+            cp ../../../$DNA_FILE input.fa
         fi
 
-        runTimedCommand "./../../../../../SNAP-master/snap O.sativa.hmm input.fa" \
+        runTimedCommand "./../../../../../tools/SNAP-master/snap O.sativa.hmm input.fa" \
             "${SPECIES_NAME}_o_sativa_output.txt" \
             "${SPECIES_NAME}_o_sativa_time_mem.txt"
         

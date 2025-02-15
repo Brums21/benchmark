@@ -10,8 +10,8 @@ fi
 
 source "$MAPPING_FILE"
 
-mkdir -p results/Augustus
-cd results/Augustus || exit 1
+mkdir -p ../results/augustus
+cd ../results/augustus || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -29,7 +29,7 @@ runProthint() {
 
     if [ -f "$HINTS_FILE" ]; then
         echo "Running ProtHint for ${SPECIES_NAME} with hints: $HINTS_TYPE"
-        runTimedCommand "./../../../../../gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
+        runTimedCommand "./../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
     fi
 }
@@ -57,7 +57,7 @@ runAUGUSTUS() {
     fi
 
     echo "Running AUGUSTUS ($MODE) for ${SPECIES_NAME} using model ${AUGUSTUS_MODEL}..."
-    runTimedCommand "./../../../../../Augustus-3.5.0/bin/augustus --species=$AUGUSTUS_MODEL $HINTS_OPTION input.fa" \
+    runTimedCommand "./../../../../../tools/Augustus-3.5.0/bin/augustus --species=$AUGUSTUS_MODEL $HINTS_OPTION input.fa" \
         "${SPECIES_NAME}_${MODE}_augustus_output.txt" "${SPECIES_NAME}_${MODE}_augustus_time_mem.txt"
     
     rm input.fa

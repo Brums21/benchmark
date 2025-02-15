@@ -6,15 +6,15 @@
 
 SPECIES_FOLDER="../../species"
 
-if [ ! -d "hints" ]; then
+if [ ! -d "../hints" ]; then
     echo "Generating all hints to be used as input."
-    ./hints_generator.sh
+    ./../hints_generator.sh
 else
     echo "Hints already generated. Skipping..."
 fi
 
-mkdir -p results/GeneMark-EPp
-cd results/GeneMark-EPp || exit 1
+mkdir -p ../results/GeneMark-EPp
+cd ../results/GeneMark-EPp || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -34,12 +34,12 @@ runGeneMarkEPp() {
         cd "$HINTS_TYPE" || exit 1
 
         echo "Running ProtHint for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../gmes_linux_64/ProtHint/bin/prothint.py input.fa $HINTS_FILE" \
+        runTimedCommand "../../../../../tdododls/gmes_linux_64/ProtHint/bin/prothint.py input.fa $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
 
         echo "Running GeneMark-EP+ for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq input.fa --cores 10" \
+        runTimedCommand "../../../../../tools/gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq input.fa --cores 10" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
@@ -69,9 +69,9 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../../$DNA_FILE > input.fa
+            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../$DNA_FILE > input.fa
         else
-            cp ../../../../$DNA_FILE input.fa
+            cp ../../$DNA_FILE input.fa
         fi
 
         runGeneMarkEPp "genus" "$SPECIES_NAME"
