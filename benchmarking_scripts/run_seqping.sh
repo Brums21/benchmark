@@ -33,13 +33,17 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
 
     echo "Running Seqping for $SPECIES_NAME..."
 
-    for MUTATION_RATE in original 0.01 0.04 0.07; do
+    for MUTATION_RATE in original 1 4 7; do
 
         mkdir -p "mr_${MUTATION_RATE}"
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../$DNA_FILE > input.fa
+            #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
+            gt seqmutate -width 60 -rate $MUTATION_RATE ../../../$DNA_FILE > input.fa
+
+            # remove the temporary files from the genome tools mutation
+            rm ${SPECIES_NAME}_dna.fa.des ${SPECIES_NAME}_dna.fa.esq ${SPECIES_NAME}_dna.fa.md5 ${SPECIES_NAME}_dna.fa.ois ${SPECIES_NAME}_dna.fa.sds
         else
             cp ../$DNA_FILE input.fa
         fi
