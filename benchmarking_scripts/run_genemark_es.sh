@@ -38,7 +38,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
 
         if [ "$MUTATION_RATE" != "original" ]; then
             #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-            gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > input.fa
         else
             cp ../$DNA_FILE input.fa
         fi
