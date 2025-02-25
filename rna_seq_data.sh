@@ -6,12 +6,12 @@ function generator(){
 
     QUERY_SPECIES=$(echo "${SPECIES}" | sed 's,\_, ,g')
 
-    SEARCH_TERM="\"Arabidopsis thaliana\"[Organism] AND TRANSCRIPTOMIC[Source] AND RNA-Seq[Strategy] AND cDNA[Selection] AND SINGLE[Layout]"
+    SEARCH_TERM="\"$QUERY_SPECIES\"[Organism] AND TRANSCRIPTOMIC[Source] AND RNA-Seq[Strategy] AND cDNA[Selection] AND SINGLE[Layout]"
     MAX_RESULTS=1
 
     OUTPUT_DIR="species/${SPECIES}/"
 
-    echo "Searching for *${SPECIES}* small RNA sequencing datasets..."
+    echo "Searching for *${SPECIES}* RNA sequencing datasets..."
 
     esearch -db sra -query "$SEARCH_TERM" | efetch -format runinfo > sra_metadata.csv
 
@@ -38,7 +38,7 @@ function generator(){
 
     rm sra_metadata.csv
 
-    echo "All requested small RNA-seq data has been downloaded to: $OUTPUT_DIR"
+    echo "All requested RNA-seq data has been downloaded to: $OUTPUT_DIR"
 
 }
 

@@ -36,33 +36,37 @@ The following commands have been performed for this aspect:
 
 1. Install miniconda:
 
-```wget https://conda.io/miniconda.html```
+```wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh```
 
-2. Run the installer:
+2. Run the installer (you can then remove the installer using `rm Miniconda3-latest-Linux-x86_64.sh`):
 
 ```bash Miniconda3-latest-Linux-x86_64.sh```
 
+and follow the steps to procced with the installation.
+
 3. Configure miniconda path:
 
-```export PATH=~/miniconda3/bin:$PATH```
+```export PATH=$HOME/miniconda3/bin```
 
 4. Reload the shell:
 
-```export PATH=~/miniconda3/bin:$PATH```
+```source ~/.bashrc```
 
-5. Activate conda:
+5. Activate conda's base environment:
+
+```eval "$(/root/miniconda3/bin/conda shell.bash hook)"```
+
+6. Initiate conda:
 
 ```conda init```
 
-6. Install the following perl dependencies:
+7. Restart the shell:
+
+```source ~/.bashrc```
+
+8. Install the following perl dependencies:
 
 ```
-   YAML
-   Hash::Merge
-   Parallel::ForkManager
-   MCE::Mutex
-   Thread::Queue
-   threads
-   Math::Utils
+   cpan YAML Hash::Merge Parallel::ForkManager MCE::Mutex Thread::Queue threads Math::Utils
 ```
 

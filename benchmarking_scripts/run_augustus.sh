@@ -46,11 +46,7 @@ runAUGUSTUS() {
     cd "$MODE" || exit 1
 
     if [ "$MUTATION_RATE" != "original" ]; then
-        #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-        gt seqmutate -width 60 -rate $MUTATION_RATE ../../../$DNA_FILE > input.fa
-
-        # remove the temporary files from the genome tools mutation
-        rm ${SPECIES_NAME}_dna.fa.des ${SPECIES_NAME}_dna.fa.esq ${SPECIES_NAME}_dna.fa.md5 ${SPECIES_NAME}_dna.fa.ois ${SPECIES_NAME}_dna.fa.sds
+        gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
     else
         cp ../../../$DNA_FILE input.fa
     fi
@@ -85,7 +81,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
 
     AUGUSTUS_MODEL=$(eval echo "\$$SPECIES_NAME" | tr -d '[:space:]')
 
-    for MUTATION_RATE in original 1 4 7; do
+    for MUTATION_RATE in original 0.01 0.04 0.07; do
         mkdir -p "mr_${MUTATION_RATE}"
         cd "mr_${MUTATION_RATE}" || exit 1
 

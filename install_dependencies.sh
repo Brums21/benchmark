@@ -58,6 +58,10 @@ wget https://ftp.ncbi.nih.gov/toolbox/ncbi_tools++/ARCHIVE/2021/Sep_30_2021/ncbi
 tar -xzf ncbi_toolkit.tar.gz
 echo "NCBI C++ Toolkit installed successfully."
 
+# Install Genome Tools
+echo "Installinge Genome Tools...."
+apt-get install genometools
+
 cd ..
 
 echo "All dependencies installed successfully!"
