@@ -46,7 +46,7 @@ runAUGUSTUS() {
     cd "$MODE" || exit 1
 
     if [ "$MUTATION_RATE" != "original" ]; then
-        gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > input.fa
+        gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
     else
         cp ../../../$DNA_FILE input.fa
     fi

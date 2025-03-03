@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# Notas: para correr GeneMark-EP+, a ferramenta ProtHint é necessária, e vem incluida na pasta do gmes_linux_64.
-# O script hints_generator.sh gera sequências de proteínas para diferentes níveis taxonômicos (gênero, ordem, etc.).
-# Mais informações podem ser encontradas nos comentários do script.
+# Notas: para correr GeneMark-EP+, a ferramenta ProtHint Ã© necessÃ¡ria, e vem incluida na pasta do gmes_linux_64.
+# O script hints_generator.sh gera sequÃªncias de proteÃ­nas para diferentes nÃ­veis taxonÃ´micos (gÃªnero, ordem, etc.).
+# Mais informaÃ§Ãµes podem ser encontradas nos comentÃ¡rios do script.
 
 SPECIES_FOLDER="../../species"
 
 if [ ! -d "../hints" ]; then
     echo "Generating all hints to be used as input."
-    ./../hints_generator.sh
+    cd ..
+    ./hints_generator.sh
+    cd benchmarking_scripts/
 else
     echo "Hints already generated. Skipping..."
 fi
@@ -27,6 +29,7 @@ runTimedCommand() {
 runGeneMarkEPp() {
     local HINTS_TYPE="$1"
     local SPECIES_NAME="$2"
+    local MUTATION_RATE="$3"
     local HINTS_FILE="../../../../hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
 
     if [ -f "$HINTS_FILE" ]; then
@@ -34,12 +37,12 @@ runGeneMarkEPp() {
         cd "$HINTS_TYPE" || exit 1
 
         echo "Running ProtHint for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../tdododls/gmes_linux_64/ProtHint/bin/prothint.py input.fa $HINTS_FILE" \
+        runTimedCommand "../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py --geneMarkGtf ../../../../../results/GeneMark-ES/${SPECIES_NAME}/mr_${MUTATION_RATE}/genemark.gtf ../input.fa ../${HINTS_FILE}" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
 
         echo "Running GeneMark-EP+ for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../tools/gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq input.fa --cores 10" \
+        runTimedCommand "../../../../../tools/gmes_linux_64/gmes_petap.pl --EP prothint.gff --evidence evidence.gff --seq ../input.fa --cores 10" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
@@ -70,14 +73,14 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
 
         if [ "$MUTATION_RATE" != "original" ]; then
             #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < ../../$DNA_FILE > input.fa
         else
             cp ../../$DNA_FILE input.fa
         fi
 
-        runGeneMarkEPp "genus" "$SPECIES_NAME"
-        runGeneMarkEPp "order" "$SPECIES_NAME"
-        runGeneMarkEPp "far" "$SPECIES_NAME"
+        runGeneMarkEPp "genus" "$SPECIES_NAME" "$MUTATION_RATE"
+        runGeneMarkEPp "order" "$SPECIES_NAME" "$MUTATION_RATE"
+        runGeneMarkEPp "far" "$SPECIES_NAME" "$MUTATION_RATE"
 
         rm input.fa
 
