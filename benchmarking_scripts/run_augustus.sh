@@ -25,12 +25,19 @@ runProthint() {
     local HINTS_TYPE="$1"
     local SPECIES_NAME="$2"
     local DNA_FILE="$3"
+    local MUTATION_RATE="$4"
     local HINTS_FILE="../../../../../hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
 
     if [ -f "$HINTS_FILE" ]; then
-        echo "Running ProtHint for ${SPECIES_NAME} with hints: $HINTS_TYPE"
-        runTimedCommand "./../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
+        echo "Checking if prothint augustus file already exists in GeneMark-EPp results."
+        if [ -f "../../../../../results/GeneMark-EPp/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/prothint_augustus.gff" ]; then
+            echo "Prothint file already exists, no need to compute again."
+            cp ../../../../../results/GeneMark-EPp/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/prothint_augustus.gff .
+        else
+            echo "Prothint file not found in Genemark results. Running ProtHint for ${SPECIES_NAME} with hints: $HINTS_TYPE"
+            runTimedCommand "./../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
+        fi
     fi
 }
 
@@ -51,13 +58,19 @@ runAUGUSTUS() {
         cp ../../../$DNA_FILE input.fa
     fi
 
+    if [ -f "augustus.gtf" ]; then
+        echo "Augustus has already been run for species ${SPECIES_NAME}, in the ${MODE} model and mutation ${MUTATION_RATE}. Skipping..."
+        cd ..
+        return 
+    fi
+
     if [ "$MODE" != "abinitio" ]; then
-        runProthint "$MODE" "$SPECIES_NAME" "input.fa"
-        HINTS_OPTION="--hintsfile=prothint_augustus.gff"
+        runProthint "$MODE" "$SPECIES_NAME" "input.fa" "$MUTATION_RATE"
+        HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=../../../../../benchmark/benchmarking_scripts/extrinsic.cfg"
     fi
 
     echo "Running AUGUSTUS ($MODE) for ${SPECIES_NAME} using model ${AUGUSTUS_MODEL}..."
-    runTimedCommand "./../../../../../tools/Augustus-3.5.0/bin/augustus --species=$AUGUSTUS_MODEL $HINTS_OPTION input.fa" \
+    runTimedCommand "./../../../../../tools/Augustus-3.5.0/bin/augustus --outfile=augustus.gtf --species=$AUGUSTUS_MODEL $HINTS_OPTION input.fa" \
         "${SPECIES_NAME}_${MODE}_augustus_output.txt" "${SPECIES_NAME}_${MODE}_augustus_time_mem.txt"
     
     rm input.fa

@@ -18,11 +18,17 @@ runGeMoMa() {
     local MODEL_NAME="$3"
     local MUTATION_RATE="$4"
 
+    # verificar se os resultados ainda nao foram executados:
+    if [ -f "../../../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/final_annotation.gff" ]; then
+        echo "Skipping GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} for mutation rate with value ${MUTATION_RATE}..."
+        return
+    fi
+
     if [ ! "$MODEL_NAME" = "none" ]; then
         mkdir -p "$HINTS_TYPE"
         cd "$HINTS_TYPE" || exit 1
 
-        echo "Running GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} reference model: ${MODEL_NAME}..."
+        echo "Running GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} reference model ${MODEL_NAME}..."
         cd ../../../../../tools/GeMoMa/
 
         /bin/time -f "%e\t%M" \
@@ -57,8 +63,10 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     ORDER_MODEL=$(eval echo "\$${SPECIES_NAME}_order" | tr -d '[:space:]')
 
     for MUTATION_RATE in original 0.01 0.04 0.07; do
+
         mkdir -p "mr_${MUTATION_RATE}"
         cd "mr_${MUTATION_RATE}" || exit 1
+        echo "Current mutation rate: ${MUTATION_RATE}"
 
         if [ "$MUTATION_RATE" != "original" ]; then
             #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa

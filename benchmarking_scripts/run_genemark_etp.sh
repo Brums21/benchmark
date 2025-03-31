@@ -25,28 +25,29 @@ runGeneMarkETP() {
         return 1
     fi
 
-    if [ "$MUTATION_RATE" != "original" ]; then
-        #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-        gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
-    else
-        cp $DNA_FILE input.fa
-    fi
-
     if [ -f "$HINTS_FILE" ]; then
         mkdir -p "$HINTS_TYPE"
         cd "$HINTS_TYPE" || exit 1
 
+        mkdir -p data
+
+        if [ "$MUTATION_RATE" != "original" ]; then
+            #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > data/input.fa
+        else
+            cp ../$DNA_FILE data/input.fa
+        fi
+
         echo "Running GeneMark-ETP for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../tools/GeneMark-ETP/bin/gmetp.pl --cores 10 --cfg ../${HINTS_FILE}" \
+        runTimedCommand "../../../../../tools/GeneMark-ETP-main/bin/gmetp.pl --cores 10 --cfg ../${HINTS_FILE}" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
+        rm -r data/
         cd ..
     else
         echo "Hints file for ${SPECIES_NAME}_${HINTS_TYPE} not found. Skipping..."
     fi
-
-    rm input.fa
 }
 
 for SPECIES in "$SPECIES_FOLDER"/*; do

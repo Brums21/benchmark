@@ -97,8 +97,6 @@ fi
 
 # 2o - organizar sets para servir como inputs 
 
-# 2o - organizar sets para servir como inputs 
-
 # A. thaliana including same genus
 cat arabidopsis_lyrata_pep.fa arabidopsis_halleri_pep.fa > ../arabidopsis_thaliana_genus.fa
 

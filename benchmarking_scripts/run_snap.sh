@@ -37,7 +37,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
             cp ../../../$DNA_FILE input.fa
         fi
 
-        runTimedCommand "./../../../../../tools/SNAP-master/snap A.thaliana.hmm input.fa" \
+        runTimedCommand "./../../../../../tools/SNAP-master/snap -gff A.thaliana.hmm input.fa > output.gff" \
             "${SPECIES_NAME}_a_thaliana_output.txt" \
             "${SPECIES_NAME}_a_thaliana_time_mem.txt"
 
@@ -58,12 +58,12 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < ../../$DNA_FILE > input.fa
         else
             cp ../../../$DNA_FILE input.fa
         fi
 
-        runTimedCommand "./../../../../../tools/SNAP-master/snap O.sativa.hmm input.fa" \
+        runTimedCommand "./../../../../../tools/SNAP-master/snap -gff O.sativa.hmm input.fa > output.gff" \
             "${SPECIES_NAME}_o_sativa_output.txt" \
             "${SPECIES_NAME}_o_sativa_time_mem.txt"
         
@@ -73,5 +73,5 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
 
     done
 
-    cd ..
+    cd ../..
 done

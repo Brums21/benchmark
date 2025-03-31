@@ -16,4 +16,9 @@
 /seqping_dependencies/*
 /res_aggr/*
 /benchmarking_scripts/genometools-master/*
+/sratoolkit.3.2.1-ubuntu64/*
+/test_prothint/*
+/testing_ML/*
 **.save
+**.swp
+
