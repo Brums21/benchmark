@@ -122,7 +122,7 @@ cat corchorus_capsularis_pep.fa theobroma_cacao_pep.fa > ../gossypium_raimondii_
 cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ../gossypium_raimondii_far.fa
 
 # M. esculenta no order
-cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ../manihot_esculenta_far.fa
+cat theobroma_cacao_pep.fa corchorus_capsularis_pep.fa > ../manihot_esculenta_far.fa
 
 # 3o - Eliminar ficheiros temporários e manter apenas as combinações
 cd ..

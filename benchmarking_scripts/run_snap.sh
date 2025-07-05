@@ -31,6 +31,12 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         mkdir -p "mr_${MUTATION_RATE}"
         cd "mr_${MUTATION_RATE}" || exit 1
 
+        if [ -f "output.gff" ]; then
+            echo "Already run for species ${SPECIES_NAME} with mutation rate ${MUTATION_RATE}. Skipping..."
+            cd ..
+            continue
+        fi
+
         if [ "$MUTATION_RATE" != "original" ]; then
             gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
         else
@@ -58,7 +64,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            gto_fasta_mutate -e $MUTATION_RATE < ../../$DNA_FILE > input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
         else
             cp ../../../$DNA_FILE input.fa
         fi

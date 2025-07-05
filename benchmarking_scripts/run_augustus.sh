@@ -38,6 +38,11 @@ runProthint() {
             runTimedCommand "./../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
         fi
+
+        return 0
+    else
+        echo "No hint file for this species and hint type. Skipping..."
+        return 1
     fi
 }
 
@@ -65,8 +70,12 @@ runAUGUSTUS() {
     fi
 
     if [ "$MODE" != "abinitio" ]; then
-        runProthint "$MODE" "$SPECIES_NAME" "input.fa" "$MUTATION_RATE"
-        HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=../../../../../benchmark/benchmarking_scripts/extrinsic.cfg"
+        if runProthint "$MODE" "$SPECIES_NAME" "input.fa" "$MUTATION_RATE"; then
+            HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=../../../../../benchmark/benchmarking_scripts/extrinsic.cfg"
+        else
+            cd ..
+            return
+        fi
     fi
 
     echo "Running AUGUSTUS ($MODE) for ${SPECIES_NAME} using model ${AUGUSTUS_MODEL}..."

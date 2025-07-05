@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p ~/data
+
 SPECIES_FOLDER="../../species"
 
 mkdir -p ../results/GeneMark-ETP
@@ -29,13 +31,18 @@ runGeneMarkETP() {
         mkdir -p "$HINTS_TYPE"
         cd "$HINTS_TYPE" || exit 1
 
+        if [ -f "genemark.gtf" ]; then
+            echo "Genemark was already run for this species (${SPECIES_NAME}), hint type (${HINTS_TYPE}) and mutation rate (${MUTATION_RATE}). Skipping..."
+            cd ..
+            return 1
+        fi
+
         mkdir -p data
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > data/input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > ~/data/input.fa
         else
-            cp ../$DNA_FILE data/input.fa
+            cp ../$DNA_FILE ~/data/input.fa
         fi
 
         echo "Running GeneMark-ETP for $SPECIES_NAME with $HINTS_TYPE hints..."
@@ -44,6 +51,7 @@ runGeneMarkETP() {
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
         rm -r data/
+        rm -r rnaseq/
         cd ..
     else
         echo "Hints file for ${SPECIES_NAME}_${HINTS_TYPE} not found. Skipping..."
@@ -72,5 +80,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     
     cd ..
 done
+
+rm -r ~/data/
 
 cd ../..

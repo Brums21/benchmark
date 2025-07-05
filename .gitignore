@@ -1,6 +1,13 @@
 
 /results/*
 /species/*
+/final_results/*
+/formatted_results/*
+/obtain_metrics
+/test_model/*
+/figs/*
+/csv_results/*
+/res_aggr/*
 /gmes_linux_64/*
 /hints/*
 /Augustus-3.5.0/*
@@ -14,11 +21,12 @@
 /data/*
 **/output_*
 /seqping_dependencies/*
-/res_aggr/*
 /benchmarking_scripts/genometools-master/*
 /sratoolkit.3.2.1-ubuntu64/*
 /test_prothint/*
 /testing_ML/*
+/.vscode/*
 **.save
 **.swp
+**.csv
 

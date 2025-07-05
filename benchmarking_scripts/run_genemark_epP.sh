@@ -36,6 +36,12 @@ runGeneMarkEPp() {
         mkdir -p "$HINTS_TYPE"
         cd "$HINTS_TYPE" || exit 1
 
+        if [ -f "genemark.gtf" ]; then
+            echo "Genemark-EPp already run for species ${SPECIES_NAME}, with mr ${MUTATION_RATE}, with hint type ${HINT_TYPE}"
+            cd ..
+            return 
+        fi
+
         echo "Running ProtHint for $SPECIES_NAME with $HINTS_TYPE hints..."
         runTimedCommand "../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py --geneMarkGtf ../../../../../results/GeneMark-ES/${SPECIES_NAME}/mr_${MUTATION_RATE}/genemark.gtf ../input.fa ../${HINTS_FILE}" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" \
