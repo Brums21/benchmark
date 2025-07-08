@@ -29,4 +29,5 @@
 **.save
 **.swp
 **.csv
+/results_csv_excel/*
 

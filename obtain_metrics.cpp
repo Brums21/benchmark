@@ -193,12 +193,12 @@ std::vector<GFFFeature> read_txt_format(const std::string& file_path) {
                 ss >> type;
                 if (!type.empty() && type.back() == ',')
                     type.pop_back();
-            } else if (token == "Start:") {
+            } else if ((token == "Start:") || (token == "Start_Center:")) {
                 ss >> start_str;
                 if (!start_str.empty() && start_str.back() == ',')
                     start_str.pop_back();
                 start = (start_str != "None") ? std::stoi(start_str) : -1;
-            } else if (token == "End:") {
+            } else if ((token == "End:") || (token == "End_Center:")) {
                 ss >> end_str;
                 if (!end_str.empty() && end_str.back() == ',')
                     end_str.pop_back();
