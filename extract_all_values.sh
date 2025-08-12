@@ -294,10 +294,15 @@ process_file() {
 #
 #rm -r aggregate_results/
 
-mkdir -p ./final_results
+mkdir -p ./final_results_
 
-for FILE in ./formatted_results/augustus_*; do
+for FILE in ./formatted_results/*; do
     FILE_NAME=$(basename "$FILE")
+    
+    if [[ "$FILE_NAME" == augustus_* ]]; then
+        continue
+    fi
+
     SPECIES_NAME=$(echo "$FILE_NAME" | cut -d'_' -f2,3)
 
     # check if files exists
@@ -310,12 +315,12 @@ for FILE in ./formatted_results/augustus_*; do
         continue
     fi
     
-    if [ -f "./final_results/${FILE_NAME%.*}.csv" ]; then
+    if [ -f "./final_results_/${FILE_NAME%.*}.csv" ]; then
         echo "CSV result already exists. Skipping..."
         continue
     fi
 
-    ./obtain_metrics ./species/${SPECIES_NAME}/${SPECIES_NAME}_annotation.gff3 ${FILE} --threads 6
+    ./obtain_metrics ./species/${SPECIES_NAME}/${SPECIES_NAME}_annotation.gff3 ${FILE} --output_folder ./final_results_/ --threads 100
 done
 
 #rm -r formatted_results/

@@ -309,17 +309,22 @@ void evaluate_and_write_csv(const std::vector<GFFFeature>& refs,
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <ref> <pred or folder> [--threads N]\n";
+        std::cerr << "Usage: " << argv[0] << " <reference GFF3 file> <predictions file or folder> [--output_folder path] [--threads N]\n";
         return 1;
     }
 
     std::string ref_file = argv[1], pred_input = argv[2], out_file;
     unsigned threads = std::thread::hardware_concurrency();
+    std::string output_folder = "";
 
     for (int i = 3; i < argc; ++i) {
         if (std::strcmp(argv[i], "--threads") == 0 && i+1 < argc) {
             threads = std::stoi(argv[++i]);
-        } else {
+        } else
+        if (std::strcmp(argv[i], "--output_folder") == 0 && i+1 < argc) {
+            output_folder = argv[++i];
+        }
+        else {
             std::cerr << "Unknown argument: " << argv[i] << '\n';
             return 1;
         }
@@ -331,22 +336,29 @@ int main(int argc, char* argv[]) {
     fs::path pred_path(pred_input);
 
     if (fs::is_directory(pred_path)) {
-        
 
         for (const auto& entry : fs::directory_iterator(pred_path)) {
             if (!entry.is_regular_file()) continue;
+
             auto file_path = entry.path();
             
             if (file_path.extension() == ".csv") continue;
             
             std::string base_name = file_path.stem().string();
+            
+            std::string output_file = (file_path.parent_path() / base_name).string();
+
+            // nao ha output folder definido - colocar na mesma pasta onde está os ficheiros a serem analizados
+            if (!output_folder.empty()){
+                output_file = output_folder + "/" + base_name;
+            }
 
             std::cout << "Processing " << file_path.filename() << "\n";
 
             std::vector<GFFFeature> preds;
             if (file_path.extension() == ".txt") {
                 preds = read_txt_format(file_path.string());
-                evaluate_auc(refs, preds, (file_path.parent_path() / base_name).string());
+                evaluate_auc(refs, preds, output_file);
             } else {
                 preds = parse_gff_parallel(file_path.string(), threads);
             }
@@ -355,7 +367,7 @@ int main(int argc, char* argv[]) {
             evaluate_and_write_csv(refs, preds, ofs);
 
             if (base_name.rfind("augustus_", 0) == 0) {
-                evaluate_auc(refs, preds, (file_path.parent_path() / base_name).string());
+                evaluate_auc(refs, preds, output_file);
             }
         }
     }
@@ -365,20 +377,29 @@ int main(int argc, char* argv[]) {
         fs::path p(pred_input);
         std::string base_name = p.stem().string();
 
+        std::string output_file = (p.parent_path() / base_name).string();
+        fs::path csv_file = p.parent_path() / (base_name + ".csv");
+
+        // nao ha output folder definido - colocar na mesma pasta onde está os ficheiros a serem analizados
+        if (!output_folder.empty()){
+            output_file = output_folder + "/" + base_name;
+            csv_file = output_folder + "/" + base_name + ".csv";
+        }
+
         if (p.extension() == ".txt") {
             preds = read_txt_format(pred_input);
-            evaluate_auc(refs, preds, (p.parent_path() / base_name).string());
+            evaluate_auc(refs, preds, output_file);
         } else {
             preds = parse_gff_parallel(pred_input, threads);
         }
 
-        fs::path csv_file = p.parent_path() / (base_name + ".csv");
+        
         std::ofstream ofs(csv_file);
         evaluate_and_write_csv(refs, preds, ofs);
 
         // always check base name for augustus_
         if (base_name.rfind("augustus_", 0) == 0){
-            evaluate_auc(refs, preds, (p.parent_path() / base_name).string());
+            evaluate_auc(refs, preds, output_file);
         }
     }
 
