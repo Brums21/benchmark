@@ -1,7 +1,15 @@
 #!/bin/bash
 
+BENCHMARK_DIR="$HOME/benchmark"
+
+RESULTS_DIR="${BENCHMARK_DIR}/results"
+RESULTS_TOOL_DIR="${RESULTS_DIR}/tools"
+COMPILED_RESULTS_DIR="${RESULTS_DIR}/compiled"
+AGGREGATED_RESULTS="${COMPILED_RESULTS_DIR}/aggregated"
+FORMATTED_RESULTS="${COMPILED_RESULTS_DIR}/formatted"
+
 getAugustusResults() {
-    for SPECIES in results/augustus/*; do
+    for SPECIES in ${RESULTS_TOOL_DIR}/augustus/*; do
         
         SPECIES_NAME=$(basename "$SPECIES")
 
@@ -27,14 +35,14 @@ getAugustusResults() {
 
                 TIME=$(echo "$TIME" | tr -d '[:space:]')
                 MEM=$(echo "$MEM" | tr -d '[:space:]')
-                cp "${HINTS_TYPE}/augustus.gtf" "aggregate_results/augustus_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gtf"
+                cp "${HINTS_TYPE}/augustus.gtf" "${AGGREGATED_RESULTS}/augustus_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gtf"
             done
         done
     done
 }
 
 getGenemarkEPpResults() {
-    for SPECIES in results/GeneMark-EPp/*; do
+    for SPECIES in ${RESULTS_TOOL_DIR}/GeneMark-EPp/*; do
         
         SPECIES_NAME=$(basename "$SPECIES")
 
@@ -60,14 +68,14 @@ getGenemarkEPpResults() {
                 TIME=$(echo "$TIME" | tr -d '[:space:]')
                 MEM=$(echo "$MEM" | tr -d '[:space:]')
 
-                cp ${HINTS_TYPE}/genemark.gtf aggregate_results/genemarkep_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gtf
+                cp ${HINTS_TYPE}/genemark.gtf ${AGGREGATED_RESULTS}/genemarkep_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gtf
             done
         done
     done
 }
 
 getGenemarkESResults() {
-    for SPECIES in results/GeneMark-ES/*; do
+    for SPECIES in ${RESULTS_TOOL_DIR}/GeneMark-ES/*; do
         
         SPECIES_NAME=$(basename "$SPECIES")
 
@@ -88,13 +96,13 @@ getGenemarkESResults() {
             TIME=$(echo "$TIME" | tr -d '[:space:]')
             MEM=$(echo "$MEM" | tr -d '[:space:]')
 
-            cp ${MR}/genemark.gtf aggregate_results/genemarkes_${SPECIES_NAME}_${MR_NUMBER}_${TIME}_${MEM}.gtf
+            cp ${MR}/genemark.gtf ${AGGREGATED_RESULTS}/genemarkes_${SPECIES_NAME}_${MR_NUMBER}_${TIME}_${MEM}.gtf
         done
     done
 }
 
 getGenemarkETPResults() {
-    for SPECIES in results/GeneMark-ETP/*; do
+    for SPECIES in ${RESULTS_TOOL_DIR}/GeneMark-ETP/*; do
         
         SPECIES_NAME=$(basename "$SPECIES")
 
@@ -119,14 +127,14 @@ getGenemarkETPResults() {
                 TIME=$(echo "$TIME" | tr -d '[:space:]')
                 MEM=$(echo "$MEM" | tr -d '[:space:]')
 
-                cp ${HINTS_TYPE}/genemark.gtf aggregate_results/genemarketp_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gtf
+                cp ${HINTS_TYPE}/genemark.gtf ${AGGREGATED_RESULTS}/genemarketp_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gtf
             done
         done
     done
 }
 
 getGeMoMaResults() {
-    for SPECIES in results/GeMoMa/*; do
+    for SPECIES in ${RESULTS_TOOL_DIR}/GeMoMa/*; do
         
         SPECIES_NAME=$(basename "$SPECIES")
 
@@ -151,14 +159,14 @@ getGeMoMaResults() {
                 TIME=$(echo "$TIME" | tr -d '[:space:]')
                 MEM=$(echo "$MEM" | tr -d '[:space:]')
 
-                cp ${HINTS_TYPE}/final_annotation.gff aggregate_results/gemoma_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gff
+                cp ${HINTS_TYPE}/final_annotation.gff ${AGGREGATED_RESULTS}/gemoma_${SPECIES_NAME}_${MR_NUMBER}_${HINTS_TYPE_NAME}_${TIME}_${MEM}.gff
             done
         done
     done
 }
 
 getSNAPResults() {
-    for SPECIES in results/SNAP/*; do
+    for SPECIES in ${RESULTS_TOOL_DIR}/SNAP/*; do
         
         SPECIES_NAME=$(basename "$SPECIES")
 
@@ -194,7 +202,7 @@ getSNAPResults() {
                 TIME=$(echo "$TIME" | tr -d '[:space:]')
                 MEM=$(echo "$MEM" | tr -d '[:space:]')
 
-                cp ${MR}/output.gff aggregate_results/snap_${SPECIES_NAME}_${MR_NUMBER}_${REFERENCE_TYPE_SPECIES}_${TIME}_${MEM}.gff
+                cp ${MR}/output.gff ${AGGREGATED_RESULTS}/snap_${SPECIES_NAME}_${MR_NUMBER}_${REFERENCE_TYPE_SPECIES}_${TIME}_${MEM}.gff
 
             done
         done
@@ -211,7 +219,7 @@ convert_and_merge() {
 
     echo "Merging cleaned files for $BASENAME ($MODE mode)..."
 
-    for file in ./aggregate_results/${BASENAME}_cleaned_*; do
+    for file in ${AGGREGATED_RESULTS}/${BASENAME}_cleaned_*; do
         if [[ -f "$file" ]]; then
             echo "Processing $file"
 
@@ -234,9 +242,9 @@ convert_and_merge() {
     done
 
     echo "Final sorting and ID assignment for $BASENAME"
-    gt gff3 -force -tidy -sort -addids -o "./formatted_results/${BASENAME}.gff3" "$merged_gff3"
+    gt gff3 -force -tidy -sort -addids -o "${FORMATTED_RESULTS}/${BASENAME}.gff3" "$merged_gff3"
     rm "$merged_gff3"
-    rm -f ./formatted_results/*.log *.log
+    rm -f ${FORMATTED_RESULTS}/*.log *.log
 }
 
 process_file() {
@@ -246,57 +254,54 @@ process_file() {
     local BASENAME=$(basename "$FILE" ."$EXT")
 
     echo "Processing $BASENAME with mode: $MODE"
-    python ./modify_output.py "$FILE"
+    python ${BENCHMARK_DIR}/metrics/modify_output.py "$FILE"
     convert_and_merge "$BASENAME" "$MODE"
 }
 
-## 1a fase -----------------------------------------------
-#mkdir -p "aggregate_results"
-##
-### aggregate results
-#for TOOL in results/*; do
-#
-#    TOOL_NAME=$(basename "$TOOL")
-#
-#    echo "Parsing ${TOOL_NAME} results..."
-#
-#    if [ "$TOOL_NAME" == "augustus" ]; then
-#        getAugustusResults
-#    elif [ "$TOOL_NAME" == "GeneMark-EPp" ]; then
-#        getGenemarkEPpResults
-#    elif [ "$TOOL_NAME" == "GeneMark-ES" ]; then
-#        getGenemarkESResults
-#    elif [ "$TOOL_NAME" == "GeneMark-ETP" ]; then
-#        getGenemarkETPResults
-#    elif [ "$TOOL_NAME" == "GeMoMa" ]; then
-#        getGeMoMaResults
-#    elif [ "$TOOL_NAME" == "SNAP" ]; then
-#        getSNAPResults
-#    fi
-#
-#done
-#
-## 2a fase ----------------------------------------------
-#mkdir -p "formatted_results"
+# 1a fase -----------------------------------------------
+mkdir -p "${FORMATTED_RESULTS}"
 
-#echo "Starting annotation formatting..."
-#
-## Uncomment to process other modes
-#
-#for FILE in ./aggregate_results/genemarkes*; do process_file "$FILE" "default"; done
-#for FILE in ./aggregate_results/genemarketp*; do process_file "$FILE" "default"; done
-#for FILE in ./aggregate_results/genemarkep*; do process_file "$FILE" "default"; done
-#for FILE in ./aggregate_results/augustus*; do process_file "$FILE" "default"; done
-#for FILE in ./aggregate_results/gemoma*; do process_file "$FILE" "default"; done
-#for FILE in ./aggregate_results/snap*; do process_file "$FILE" "snap"; done
-#
-#echo "Finished formatting all annotations."
-#
-#rm -r aggregate_results/
+# aggregate results
+for TOOL in ${RESULTS_TOOL_DIR}/*; do
 
-mkdir -p ./final_results_
+    TOOL_NAME=$(basename "$TOOL")
 
-for FILE in ./formatted_results/*; do
+    echo "Parsing ${TOOL_NAME} results..."
+
+    if [ "$TOOL_NAME" == "augustus" ]; then
+        getAugustusResults
+    elif [ "$TOOL_NAME" == "GeneMark-EPp" ]; then
+        getGenemarkEPpResults
+    elif [ "$TOOL_NAME" == "GeneMark-ES" ]; then
+        getGenemarkESResults
+    elif [ "$TOOL_NAME" == "GeneMark-ETP" ]; then
+        getGenemarkETPResults
+    elif [ "$TOOL_NAME" == "GeMoMa" ]; then
+        getGeMoMaResults
+    elif [ "$TOOL_NAME" == "SNAP" ]; then
+        getSNAPResults
+    fi
+
+done
+
+# 2a fase ----------------------------------------------
+mkdir -p "${FORMATTED_RESULTS}"
+echo "Starting annotation formatting..."
+
+for pattern in genemarkes* genemarketp* genemarkep* augustus* gemoma* snap*; do
+    mode="default"
+    [[ $pattern == snap* ]] && mode="snap"
+
+    for FILE in "${AGGREGATED_RESULTS}"/$pattern; do
+        process_file "$FILE" "$mode"
+    done
+done
+
+echo "Finished formatting all annotations."
+
+mkdir -p ${COMPILED_RESULTS_DIR}
+
+for FILE in ${FORMATTED_RESULTS}/*; do
     FILE_NAME=$(basename "$FILE")
     
     if [[ "$FILE_NAME" == augustus_* ]]; then
@@ -305,8 +310,10 @@ for FILE in ./formatted_results/*; do
 
     SPECIES_NAME=$(echo "$FILE_NAME" | cut -d'_' -f2,3)
 
+    SPECIES_FOLDER="${BENCHMARK_DIR}/species/${SPECIES_NAME}"
+
     # check if files exists
-    if [ ! -f "./species/${SPECIES_NAME}/${SPECIES_NAME}_annotation.gff3" ]; then
+    if [ ! -f "${SPECIES_FOLDER}/${SPECIES_NAME}_annotation.gff3" ]; then
         echo "GFF3 file not found for ${SPECIES_NAME}. Skipping..."
         continue
     fi
@@ -315,12 +322,26 @@ for FILE in ./formatted_results/*; do
         continue
     fi
     
-    if [ -f "./final_results_/${FILE_NAME%.*}.csv" ]; then
+    if [ -f "${COMPILED_RESULTS_DIR}/${FILE_NAME%.*}.csv" ]; then
         echo "CSV result already exists. Skipping..."
         continue
     fi
 
-    ./obtain_metrics ./species/${SPECIES_NAME}/${SPECIES_NAME}_annotation.gff3 ${FILE} --output_folder ./final_results_/ --threads 100
-done
 
-#rm -r formatted_results/
+    OBTAIN_METRICS_BIN="${BENCHMARK_DIR}/metrics/obtain_metrics"
+    OBTAIN_METRICS_SRC="${METRICS_BIN}.cpp"
+
+    if [[ ! -x "${OBTAIN_METRICS_BIN}" ]]; then
+
+        echo "Metrics executable not found, building from source..."
+        if [[ -f "${OBTAIN_METRICS_SRC}" ]]; then
+            g++ "$METRICS_SRC" -o "$METRICS_BIN"
+            echo "Metrics executable compiled successfully."
+        else
+            echo "Error: Source file $METRICS_SRC not found."
+            exit 1
+        fi
+    fi
+
+    ${OBTAIN_METRICS_BIN} ${SPECIES_FOLDER}/${SPECIES_NAME}_annotation.gff3 ${FILE} --output_folder ${COMPILED_RESULTS_DIR} --threads 20
+done

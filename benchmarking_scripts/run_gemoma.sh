@@ -1,16 +1,21 @@
 #!/bin/bash
 
-SPECIES_FOLDER="../../species"
-GEMOMA_REFERENCE="species_model_gemoma.txt"
+BENCHMARK_DIR="$HOME/benchmark"
+
+SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
+REFERENCE_SPECIES_FOLDER="${BENCHMARK_DIR}/species/reference_species"
+
+GEMOMA_REFERENCE="${BENCHMARK_DIR}/config/species_model_gemoma.txt"
+RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeMoMa"
 
 if [ ! -f "$GEMOMA_REFERENCE" ]; then
-    echo "Error: Mapping file '${GEMOMA_REFERENCE}' not found!"
+    echo "Error: Mapping file species_model_gemoma.txt in '${GEMOMA_REFERENCE}' not found!"
     exit 1
 fi
 source "$GEMOMA_REFERENCE"
 
-mkdir -p ../results/GeMoMa
-cd ../results/GeMoMa || exit 1
+mkdir -p ${RESULTS_FOLDER}
+cd ${RESULTS_FOLDER} || exit 1
 
 runGeMoMa() {
     local HINTS_TYPE="$1"
@@ -18,8 +23,13 @@ runGeMoMa() {
     local MODEL_NAME="$3"
     local MUTATION_RATE="$4"
 
-    # verificar se os resultados ainda nao foram executados:
-    if [ -f "../../../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/final_annotation.gff" ]; then
+    CURRENT_RESULTS_FOLDER="${RESULTS_FOLDER}/${SPECIES_NAME}/mr_${MUTATION_RATE}"
+    CURRENT_DIR="${CURRENT_SPECIES_FOLDER}/mr_${MUTATION_RATE}/${HINTS_TYPE}"
+    CURRENT_DIR_METRICS="${CURRENT_DIR}/${SPECIES_NAME}_${HINTS_TYPE}"
+    CURRENT_REFERENCE_SPECIES="${REFERENCE_SPECIES_FOLDER}/${MODEL_NAME}/${MODEL_NAME}"
+
+    # verificar se os resultados ainda nao foram executados
+    if [ -f "${CURRENT_DIR}/final_annotation.gff" ]; then
         echo "Skipping GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} for mutation rate with value ${MUTATION_RATE}..."
         return
     fi
@@ -29,16 +39,19 @@ runGeMoMa() {
         cd "$HINTS_TYPE" || exit 1
 
         echo "Running GeMoMa for ${SPECIES_NAME} with ${HINTS_TYPE} reference model ${MODEL_NAME}..."
-        cd ../../../../../tools/GeMoMa/
+        cd ${BENCHMARK_DIR}/tools/GeMoMa/
 
         /bin/time -f "%e\t%M" \
-            ./pipeline.sh mmseqs ../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}/input.fa \
-            ../../reference_species/${MODEL_NAME}/${MODEL_NAME}_annotation.gff3 \
-            ../../reference_species/${MODEL_NAME}/${MODEL_NAME}_dna.fa 10 ../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE} \
-            > "../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/${SPECIES_NAME}_${HINTS_TYPE}_output.txt" \
-            2> "../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/${SPECIES_NAME}_${HINTS_TYPE}_time_mem.txt"
+            ./pipeline.sh mmseqs \
+            ${CURRENT_RESULTS_FOLDER}/input.fa \
+            ${CURRENT_REFERENCE_SPECIES}_annotation.gff3 \
+            ${CURRENT_REFERENCE_SPECIES}_dna.fa \
+            10 \
+            ${CURRENT_DIR} \
+            > "${CURRENT_DIR_METRICS}_output.txt" \
+            2> "${CURRENT_DIR_METRICS}_time_mem.txt"
 
-        cd ../../results/GeMoMa/${SPECIES_NAME}/mr_${MUTATION_RATE}
+        cd "$(dirname "$CURRENT_DIR")"
         
     fi
 }
@@ -58,31 +71,29 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     mkdir -p "$SPECIES_NAME"
     cd "$SPECIES_NAME" || exit 1
 
-    FAR_MODEL=$(eval echo "\$${SPECIES_NAME}_far" | tr -d '[:space:]')
-    GENUS_MODEL=$(eval echo "\$${SPECIES_NAME}_genus" | tr -d '[:space:]')
-    ORDER_MODEL=$(eval echo "\$${SPECIES_NAME}_order" | tr -d '[:space:]')
+    for HINTS_NAME in far genus order; do
 
-    for MUTATION_RATE in original 0.01 0.04 0.07; do
+        CURRENT_MODEL=$(eval echo "\$${SPECIES_NAME}_${HINTS_NAME}" | tr -d '[:space:]')
 
-        mkdir -p "mr_${MUTATION_RATE}"
-        cd "mr_${MUTATION_RATE}" || exit 1
-        echo "Current mutation rate: ${MUTATION_RATE}"
+        for MUTATION_RATE in original 0.01 0.04 0.07; do
 
-        if [ "$MUTATION_RATE" != "original" ]; then
-            #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-            gto_fasta_mutate -e $MUTATION_RATE < ../../$DNA_FILE > input.fa
-        else
-            cp ../../$DNA_FILE input.fa
-        fi
+            mkdir -p "mr_${MUTATION_RATE}"
+            cd "mr_${MUTATION_RATE}" || exit 1
+            echo "Current mutation rate: ${MUTATION_RATE}"
 
-        runGeMoMa "far" "$SPECIES_NAME" "$FAR_MODEL" "$MUTATION_RATE"
-        runGeMoMa "genus" "$SPECIES_NAME" "$GENUS_MODEL" "$MUTATION_RATE"
-        runGeMoMa "order" "$SPECIES_NAME" "$ORDER_MODEL" "$MUTATION_RATE"
+            if [ "$MUTATION_RATE" != "original" ]; then
+                gto_fasta_mutate -e $MUTATION_RATE < $DNA_FILE > input.fa
+            else
+                cp $DNA_FILE input.fa
+            fi
 
-        rm input.fa
+            runGeMoMa "$HINTS_NAME" "$SPECIES_NAME" "$CURRENT_MODEL" "$MUTATION_RATE"
 
-        cd ..
+            rm input.fa
 
+            cd ..
+
+        done
     done
 
     cd ..

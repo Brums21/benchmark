@@ -1,9 +1,14 @@
 #!/bin/bash
 
-SPECIES_FOLDER="../../species"
+BENCHMARK_DIR="$HOME/benchmark"
 
-mkdir -p ../results/GeneMark-ES
-cd ../results/GeneMark-ES || exit 1
+SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
+RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-ES"
+
+TOOL_DIR="${BENCHMARK_DIR}/tools/gmes_linux_64"
+
+mkdir -p ${RESULTS_FOLDER}
+cd ${RESULTS_FOLDER} || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -22,7 +27,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     mkdir -p "$SPECIES_NAME"
     cd "$SPECIES_NAME" || exit 1
 
-    DNA_FILE="../$SPECIES/${SPECIES_NAME}_dna.fa"
+    DNA_FILE="$SPECIES/${SPECIES_NAME}_dna.fa"
 
     if [ ! -f "$DNA_FILE" ]; then
         echo "Warning: DNA file $DNA_FILE not found, skipping..."
@@ -37,13 +42,12 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         cd "mr_${MUTATION_RATE}" || exit 1
 
         if [ "$MUTATION_RATE" != "original" ]; then
-            #AlcoR simulation -fs 0:0:0:42:$MUTATION_RATE:0:0:../../../$DNA_FILE > input.fa
-            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < $DNA_FILE > input.fa
         else
-            cp ../$DNA_FILE input.fa
+            cp $DNA_FILE input.fa
         fi
 
-        runTimedCommand "../../../../tools/gmes_linux_64/gmes_petap.pl --sequence input.fa --ES --cores 10" \
+        runTimedCommand "${TOOL_DIR}/gmes_petap.pl --sequence input.fa --ES --cores 10" \
             "${SPECIES_NAME}_genemark_output.txt" \
             "${SPECIES_NAME}_genemark_time_mem.txt"
 

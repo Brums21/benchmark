@@ -1,9 +1,13 @@
 #!/bin/bash
 
-SPECIES_FOLDER="../../species"
+BENCHMARK_DIR="$HOME/benchmark"
 
-mkdir -p ../results/SNAP
-cd ../results/SNAP || exit 1
+SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
+RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/SNAP"
+
+
+mkdir -p ${RESULTS_FOLDER}
+cd ${RESULTS_FOLDER} || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -23,61 +27,46 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     mkdir -p "$SPECIES_NAME"
     cd "$SPECIES_NAME" || exit 1
 
-    echo "Running SNAP with Arabidopsis thaliana reference species..."
-    mkdir -p "arabidopsis_reference"
-    cd "arabidopsis_reference" || exit 1
+    declare -A REFS=(
+        ["arabidopsis_reference"]="A.thaliana.hmm"
+        ["rice_reference"]="O.sativa.hmm"
+    )
 
-    for MUTATION_RATE in original 0.01 0.04 0.07; do
-        mkdir -p "mr_${MUTATION_RATE}"
-        cd "mr_${MUTATION_RATE}" || exit 1
+    for REF_LABEL in "${!REFS[@]}"; do
+        HMM_MODEL_FILE=${REFS[$REF_LABEL]}
 
-        if [ -f "output.gff" ]; then
-            echo "Already run for species ${SPECIES_NAME} with mutation rate ${MUTATION_RATE}. Skipping..."
+        echo "Running SNAP with ${REF_LABEL} reference species..."
+        mkdir -p "${REF_LABEL}"
+        cd "${REF_LABEL}" || exit 1
+
+        for MUTATION_RATE in original 0.01 0.04 0.07; do
+            mkdir -p "mr_${MUTATION_RATE}"
+            cd "mr_${MUTATION_RATE}" || exit 1
+
+            if [ -f "output.gff" ]; then
+                echo "Already run for species ${SPECIES_NAME} with mutation rate ${MUTATION_RATE}. Skipping..."
+                cd ..
+                continue
+            fi
+
+            if [ "$MUTATION_RATE" != "original" ]; then
+                gto_fasta_mutate -e $MUTATION_RATE < $DNA_FILE > input.fa
+            else
+                cp $DNA_FILE input.fa
+            fi
+
+            runTimedCommand "${BENCHMARK_DIR}/tools/SNAP-master/snap -gff ${HMM_MODEL_FILE} input.fa > output.gff" \
+                "${SPECIES_NAME}_a_thaliana_output.txt" \
+                "${SPECIES_NAME}_a_thaliana_time_mem.txt"
+
+            rm input.fa
+
             cd ..
-            continue
-        fi
+        
+        done
 
-        if [ "$MUTATION_RATE" != "original" ]; then
-            gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
-        else
-            cp ../../../$DNA_FILE input.fa
-        fi
-
-        runTimedCommand "./../../../../../tools/SNAP-master/snap -gff A.thaliana.hmm input.fa > output.gff" \
-            "${SPECIES_NAME}_a_thaliana_output.txt" \
-            "${SPECIES_NAME}_a_thaliana_time_mem.txt"
-
-        rm input.fa
-
-        cd ..
-    
+        cd .. 
     done
 
     cd ..
-
-    echo "Running SNAP with rice (Oryza sativa) reference species..."
-    mkdir -p "rice_reference"
-    cd "rice_reference" || exit 1
-
-    for MUTATION_RATE in original 0.01 0.04 0.07; do
-        mkdir -p "mr_${MUTATION_RATE}"
-        cd "mr_${MUTATION_RATE}" || exit 1
-
-        if [ "$MUTATION_RATE" != "original" ]; then
-            gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
-        else
-            cp ../../../$DNA_FILE input.fa
-        fi
-
-        runTimedCommand "./../../../../../tools/SNAP-master/snap -gff O.sativa.hmm input.fa > output.gff" \
-            "${SPECIES_NAME}_o_sativa_output.txt" \
-            "${SPECIES_NAME}_o_sativa_time_mem.txt"
-        
-        rm input.fa
-
-        cd ..
-
-    done
-
-    cd ../..
 done

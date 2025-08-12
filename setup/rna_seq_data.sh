@@ -1,5 +1,8 @@
 #!/bin/bash
 
+BENCHMARK_DIR="$HOME/benchmark"
+SPECIES_DIR="${BENCHMARK_DIR}/species/benchmark_species"
+
 declare -A RUN_IDS_MAP=(
     ["arabidopsis_thaliana"]="SRR26130646 SRR26130647 SRR13181660"
     ["gossypium_raimondii"]="SRR29754174 SRR9680570 SRR9680571"
@@ -7,13 +10,14 @@ declare -A RUN_IDS_MAP=(
     ["oryza_sativa"]="SRR12147606 SRR12147607 SRR12147608"
 )
 
+TEMP_FASTA_DIR=${BENCHMARK_DIR}/temp_data
 
 function generateConfigFile() {
     local HINTS_TYPE="$1"
     local SPECIES="$2"
     shift 2
     local RUN_IDS=("$@")
-    local HINTS_FILE="hints/${SPECIES}_${HINTS_TYPE}.fa"
+    local HINTS_FILE="${SPECIES_DIR}/${SPECIES}/${SPECIES}_${HINTS_TYPE}.fa"
 
     if [ -f "$HINTS_FILE" ]; then
         local PROT_PATH=$(realpath "$HINTS_FILE")
@@ -21,7 +25,7 @@ function generateConfigFile() {
         {
             echo "---"
             echo "species: ${SPECIES}"
-            echo "genome_path: $HOME/data/input.fa"
+            echo "genome_path: $TEMP_FASTA_DIR/input.fa"
             echo "rnaseq_sets: ["
             for ((i = 0; i < ${#RUN_IDS[@]}; i++)); do
                 if [ "$i" -lt $((${#RUN_IDS[@]} - 1)) ]; then
@@ -32,7 +36,7 @@ function generateConfigFile() {
             done
             echo "]"
             echo "protdb_path: ${PROT_PATH}"
-        } > "species/${SPECIES}/${SPECIES}_${HINTS_TYPE}.yaml"
+        } > "${SPECIES_DIR}/${SPECIES}/${SPECIES}_${HINTS_TYPE}.yaml"
     else
         echo "Hint file not found for ${SPECIES}_${HINTS_TYPE}. Skipping..."
     fi

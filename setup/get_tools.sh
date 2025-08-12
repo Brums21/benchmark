@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BENCHMARK_DIR="$HOME/benchmark" #TODO: mudar isto para a configuracao do home directory -> .json ou .cfg
+
 # Check if wget and unzip are installed
 command -v wget >/dev/null 2>&1 || { 
     echo "wget is required but not installed. Installing..."; 
@@ -10,8 +12,8 @@ command -v unzip >/dev/null 2>&1 || {
     apt-get install unzip;
 }
 
-mkdir -p tools
-cd tools || exit 1
+mkdir -p ${BENCHMARK_DIR}/tools
+cd ${BENCHMARK_DIR}/tools || exit 1
 
 # GeneMark-ETP
 echo -e "\n\nGeneMark-ETP ------------------------------------------------------"
@@ -79,7 +81,7 @@ else
     echo "GeMoMa is already installed. Skipping..."
 fi 
 
-cd ..
+cd ${BENCHMARK_DIR}
 
 echo -e "\n\nFinished installing all tools"
 

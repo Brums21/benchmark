@@ -10,6 +10,4 @@
 
 ./run_genemark_etp
 
-./run_seqping
-
 ./run_snap

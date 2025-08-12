@@ -1,124 +1,128 @@
 #!/bin/bash
 # This script downloads the DNA sequences and annotation from the first chromossome of 4 species
 
-#echo "Making species folder and entering it..."
-#mkdir species
-#cd species
-#
-## well annotated species
-#
-## Arabidopsis thaliana ---------------------------------------------------------------------------------
-#echo "Arabidopsis thaliana"
-#mkdir arabidopsis_thaliana
-#cd arabidopsis_thaliana
-#
-#echo "Downloading DNA sequence..."
-#if [ ! -f "arabidopsis_thaliana_dna.fa" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna.chromosome.1.fa.gz -O arabidopsis_thaliana_dna.fa.gz
-#    gunzip arabidopsis_thaliana_dna.fa.gz
-#else
-#    echo "A. thaliana sequence already downloaded. Skipping..."
-#fi
-#
-#echo "Downloading annotation..."
-#if [ ! -f "arabidopsis_thaliana_annotation.gff3" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.60.chromosome.1.gff3.gz -O arabidopsis_thaliana_annotation.gff3.gz
-#    gunzip arabidopsis_thaliana_annotation.gff3.gz
-#else
-#    echo "A. thaliana annotation already downloaded. Skipping..."
-#fi
-#cd ..
-#echo "A. thaliana downloaded."
-#
-#
-## Oryza sativa -------------------------------------------------------------------------------------
-#echo "Oryza sativa"
-#mkdir oryza_sativa
-#cd oryza_sativa
-#
-#echo "Downloading DNA sequence..."
-#if [ ! -f "oryza_sativa_dna.fa" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna.chromosome.1.fa.gz -O oryza_sativa_dna.fa.gz
-#    gunzip oryza_sativa_dna.fa.gz
-#else
-#    echo "O. sativa sequence already downloaded. Skipping..."
-#fi
-#
-#echo "Downloading annotation..."
-#if [ ! -f "oryza_sativa_annotation.gff3" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/oryza_sativa/Oryza_sativa.IRGSP-1.0.60.chromosome.1.gff3.gz -O oryza_sativa_annotation.gff3.gz
-#    gunzip oryza_sativa_annotation.gff3.gz
-#else
-#    echo "O. sativa annotation already downloaded. Skipping..."
-#fi
-#cd ..
-#echo "O. sativa downloaded."
-#
-#
-## 'Unusual' species
-#
-## Gossypium raimondii - cotton ------------------------------------------------------------------------
-#echo "Gossypium raimondii"
-#mkdir gossypium_raimondii
-#cd gossypium_raimondii
-#
-#echo "Downloading DNA sequence..."
-#if [ ! -f "gossypium_raimondii_dna.fa" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/gossypium_raimondii/dna/Gossypium_raimondii.Graimondii2_0_v6.dna.chromosome.1.fa.gz -O gossypium_raimondii_dna.fa.gz
-#    gunzip gossypium_raimondii_dna.fa.gz
-#else
-#    echo "Gossypium raimondii sequence already downloaded. Skipping..."
-#fi
-#
-#echo "Downloading annotation..."
-#if [ ! -f "gossypium_raimondii_annotation.gff3" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/gossypium_raimondii/Gossypium_raimondii.Graimondii2_0_v6.60.chromosome.1.gff3.gz -O gossypium_raimondii_annotation.gff3.gz
-#    gunzip gossypium_raimondii_annotation.gff3.gz
-#else
-#    echo "Gossypium raimondii sequence already downloaded. Skipping..."
-#fi
-#cd ..
-#echo "G. raimondii downloaded."
-#
-#
-## Manihot esculenta - cassava ------------------------------------------------------------------------
-#echo "Manihot esculenta"
-#mkdir manihot_esculenta
-#cd manihot_esculenta
-#
-#echo "Downloading DNA sequence..."
-#if [ ! -f "manihot_esculenta_dna.fa" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/manihot_esculenta/dna/Manihot_esculenta.M.esculenta_v8.dna.primary_assembly.CM004387.2.fa.gz -O manihot_esculenta_dna.fa.gz
-#    gunzip manihot_esculenta_dna.fa.gz
-#else
-#    echo "Manihot esculenta sequence already downloaded. Skipping..."
-#fi
-#
-#echo "Downloading annotation..."
-#if [ ! -f "manihot_esculenta_annotation.gff3" ]; then
-#    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/manihot_esculenta/Manihot_esculenta.M.esculenta_v8.60.primary_assembly.CM004387.2.gff3.gz -O manihot_esculenta_annotation.gff3.gz
-#    gunzip manihot_esculenta_annotation.gff3.gz
-#else
-#    echo "Manihot esculenta sequence already downloaded. Skipping..."
-#fi
-#cd ..
-#echo "M. esculenta downloaded."
-#
-#cd ..
+BENCHMARK_DIR="$HOME/benchmark" #TODO: mudar isto para a configuracao do home directory -> .json ou .cfg
+
+SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
+REFERENCES_FOLDER="${BENCHMARK_DIR}/species/reference_species"
+
+
+echo "Making species folder and entering it..."
+mkdir ${SPECIES_FOLDER}
+cd ${SPECIES_FOLDER}
+
+# well annotated species
+
+# Arabidopsis thaliana ---------------------------------------------------------------------------------
+echo "Arabidopsis thaliana"
+mkdir arabidopsis_thaliana
+cd arabidopsis_thaliana
+
+echo "Downloading DNA sequence..."
+if [ ! -f "arabidopsis_thaliana_dna.fa" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna.chromosome.1.fa.gz -O arabidopsis_thaliana_dna.fa.gz
+    gunzip arabidopsis_thaliana_dna.fa.gz
+else
+    echo "A. thaliana sequence already downloaded. Skipping..."
+fi
+
+echo "Downloading annotation..."
+if [ ! -f "arabidopsis_thaliana_annotation.gff3" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.60.chromosome.1.gff3.gz -O arabidopsis_thaliana_annotation.gff3.gz
+    gunzip arabidopsis_thaliana_annotation.gff3.gz
+else
+    echo "A. thaliana annotation already downloaded. Skipping..."
+fi
+cd ..
+echo "A. thaliana downloaded."
+
+
+# Oryza sativa -------------------------------------------------------------------------------------
+echo "Oryza sativa"
+mkdir oryza_sativa
+cd oryza_sativa
+
+echo "Downloading DNA sequence..."
+if [ ! -f "oryza_sativa_dna.fa" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna.chromosome.1.fa.gz -O oryza_sativa_dna.fa.gz
+    gunzip oryza_sativa_dna.fa.gz
+else
+    echo "O. sativa sequence already downloaded. Skipping..."
+fi
+
+echo "Downloading annotation..."
+if [ ! -f "oryza_sativa_annotation.gff3" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/oryza_sativa/Oryza_sativa.IRGSP-1.0.60.chromosome.1.gff3.gz -O oryza_sativa_annotation.gff3.gz
+    gunzip oryza_sativa_annotation.gff3.gz
+else
+    echo "O. sativa annotation already downloaded. Skipping..."
+fi
+cd ..
+echo "O. sativa downloaded."
+
+
+# 'Unusual' species
+
+# Gossypium raimondii - cotton ------------------------------------------------------------------------
+echo "Gossypium raimondii"
+mkdir gossypium_raimondii
+cd gossypium_raimondii
+
+echo "Downloading DNA sequence..."
+if [ ! -f "gossypium_raimondii_dna.fa" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/gossypium_raimondii/dna/Gossypium_raimondii.Graimondii2_0_v6.dna.chromosome.1.fa.gz -O gossypium_raimondii_dna.fa.gz
+    gunzip gossypium_raimondii_dna.fa.gz
+else
+    echo "Gossypium raimondii sequence already downloaded. Skipping..."
+fi
+
+echo "Downloading annotation..."
+if [ ! -f "gossypium_raimondii_annotation.gff3" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/gossypium_raimondii/Gossypium_raimondii.Graimondii2_0_v6.60.chromosome.1.gff3.gz -O gossypium_raimondii_annotation.gff3.gz
+    gunzip gossypium_raimondii_annotation.gff3.gz
+else
+    echo "Gossypium raimondii sequence already downloaded. Skipping..."
+fi
+cd ..
+echo "G. raimondii downloaded."
+
+
+# Manihot esculenta - cassava ------------------------------------------------------------------------
+echo "Manihot esculenta"
+mkdir manihot_esculenta
+cd manihot_esculenta
+
+echo "Downloading DNA sequence..."
+if [ ! -f "manihot_esculenta_dna.fa" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/manihot_esculenta/dna/Manihot_esculenta.M.esculenta_v8.dna.primary_assembly.CM004387.2.fa.gz -O manihot_esculenta_dna.fa.gz
+    gunzip manihot_esculenta_dna.fa.gz
+else
+    echo "Manihot esculenta sequence already downloaded. Skipping..."
+fi
+
+echo "Downloading annotation..."
+if [ ! -f "manihot_esculenta_annotation.gff3" ]; then
+    wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/manihot_esculenta/Manihot_esculenta.M.esculenta_v8.60.primary_assembly.CM004387.2.gff3.gz -O manihot_esculenta_annotation.gff3.gz
+    gunzip manihot_esculenta_annotation.gff3.gz
+else
+    echo "Manihot esculenta sequence already downloaded. Skipping..."
+fi
+cd ..
+echo "M. esculenta downloaded."
+
+cd ..
 
 
 echo "Downloading now reference species to be used in tools that need evidence"
 echo "Making reference_species folder and entering it..."
 
-#mkdir -p reference_species
-#cd reference_species || exit 1
-
-cd testing_ML/dataset_comparison || exit 1  #TODO: delete
+mkdir -p ${REFERENCES_FOLDER}
+cd ${REFERENCES_FOLDER} || exit 1
 
 # Arabidopsis lyrata ------------------------------------------------------------------------
 echo "Arabidopsis lyrata"
-#mkdir arabidopsis_lyrata
-#cd arabidopsis_lyrata
+mkdir arabidopsis_lyrata
+cd arabidopsis_lyrata
 
 echo "Downloading DNA sequence..."
 if [ ! -f "arabidopsis_lyrata_dna.fa" ]; then
@@ -135,14 +139,14 @@ if [ ! -f "arabidopsis_lyrata_annotation.gff3" ]; then
 else
     echo "Arabidopsis lyrata sequence already downloaded. Skipping..."
 fi
-#cd ..
+cd ..
 echo "A. lyrata downloaded."
 
 
 # Oryza nivara ------------------------------------------------------------------------
 echo "Oryza nivara"
-#mkdir oryza_nivara
-#cd oryza_nivara
+mkdir oryza_nivara
+cd oryza_nivara
 
 echo "Downloading DNA sequence..."
 if [ ! -f "oryza_nivara_dna.fa" ]; then
@@ -159,14 +163,14 @@ if [ ! -f "oryza_nivara_annotation.gff3" ]; then
 else
     echo "Oryza nivara sequence already downloaded. Skipping..."
 fi
-#cd ..
+cd ..
 echo "O. nivara downloaded."
 
 
 # Brassica napus ------------------------------------------------------------------------
 echo "Brassica napus"
-#mkdir brassica_napus
-#cd brassica_napus
+mkdir brassica_napus
+cd brassica_napus
 
 echo "Downloading DNA sequence..."
 if [ ! -f "brassica_napus_dna.fa" ]; then
@@ -183,14 +187,14 @@ if [ ! -f "brassica_napus_annotation.gff3" ]; then
 else
     echo "Brassica napus sequence already downloaded. Skipping..."
 fi
-#cd ..
+cd ..
 echo "B. napus downloaded."
 
 
 # Zea mays ------------------------------------------------------------------------
 echo "Zea mays"
-#mkdir zea_mays
-#cd zea_mays
+mkdir zea_mays
+cd zea_mays
 
 echo "Downloading DNA sequence..."
 if [ ! -f "zea_mays_dna.fa" ]; then
@@ -207,14 +211,14 @@ if [ ! -f "zea_mays_annotation.gff3" ]; then
 else
     echo "Zea mays sequence already downloaded. Skipping..."
 fi
-#cd ..
+cd ..
 echo "Z. mays downloaded."
 
 
 # Zea mays ------------------------------------------------------------------------
 echo "Corchorus capsularis"
 mkdir corchorus_capsularis
-#cd corchorus_capsularis
+cd corchorus_capsularis
 
 echo "Downloading DNA sequence..."
 if [ ! -f "corchorus_capsularis_dna.fa" ]; then
@@ -231,99 +235,7 @@ if [ ! -f "corchorus_capsularis_annotation.gff3" ]; then
 else
     echo "Corchorus capsularis sequence already downloaded. Skipping..."
 fi
-#cd ..
+cd ..
 echo "C. capsularis downloaded."
 
 echo "Finished getting DNA and annotations for all species"
-
-# This is to be desconsidered
-
-## Brassica napus ---------------------------------------------------------------------------------
-#echo "Brassica napus"
-#mkdir brassica_napus
-#cd brassica_napus
-#
-## Get DNA sequence
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/brassica_napus/dna/Brassica_napus.AST_PRJEB5043_v1.dna.toplevel.fa.gz -O brassica_napus_dna.fa.gz
-#gunzip brassica_napus_dna.fa.gz
-#
-## Get annotation
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/brassica_napus/Brassica_napus.AST_PRJEB5043_v1.60.gff3.gz -O brassica_napus_annotation.gff3.gz
-#gunzip brassica_napus_annotation.gff3.gz
-#cd ..
-#
-## Hordeum vulgare ---------------------------------------------------------------------------------
-#echo "Hordeum vulgare"
-#mkdir hordeum_vulgare
-#cd hordeum_vulgare
-#
-## Get DNA sequence
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/hordeum_vulgare/dna/Hordeum_vulgare.MorexV3_pseudomolecules_assembly.dna.toplevel.fa.gz -O hordeum_vulgare_dna.fa.gz
-#gunzip hordeum_vulgare_dna.fa.gz
-#
-## Get annotation
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/hordeum_vulgare/Hordeum_vulgare.MorexV3_pseudomolecules_assembly.60.gff3.gz -O hordeum_vulgare_annotation.gff3.gz
-#gunzip hordeum_vulgare_annotation.gff3.gz
-#cd ..
-#
-#
-## Oryza sativa ---------------------------------------------------------------------------------
-#echo "Oryza sativa"
-#mkdir oryza_sativa
-#cd oryza_sativa
-#
-## Get DNA sequence
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna.toplevel.fa.gz -O oryza_sativa_dna.fa.gz
-#gunzip oryza_sativa_dna.fa.gz
-#
-## Get annotation
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/oryza_sativa/Oryza_sativa.IRGSP-1.0.60.gff3.gz -O oryza_sativa_annotation.gff3.gz
-#gunzip oryza_sativa_annotation.gff3.gz
-#cd ..
-#
-#
-## Solanum Lycopersicum ---------------------------------------------------------------------------------
-#echo "Solanum Lycopersicum"
-#mkdir solanum_lycopersicum
-#cd solanum_lycopersicum
-#
-## Get DNA sequence
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/solanum_lycopersicum/dna/Solanum_lycopersicum.SL3.0.dna.toplevel.fa.gz -O solanum_lycopersicum_dna.fa.gz
-#gunzip solanum_lycopersicum_dna.fa.gz
-#
-## Get annotation
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/solanum_lycopersicum/Solanum_lycopersicum.SL3.0.60.gff3.gz -O solanum_lycopersicum_annotation.gff3.gz
-#gunzip solanum_lycopersicum_annotation.gff3.gz
-#cd ..
-#
-#
-## Triticum Aestivum ---------------------------------------------------------------------------------
-#echo "Triticum Aestivum"
-#mkdir triticum_aestivum
-#cd triticum_aestivum
-#
-## Get DNA sequence
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/triticum_aestivum/dna/Triticum_aestivum.IWGSC.dna.toplevel.fa.gz -O triticum_aestivum_dna.fa.gz
-#gunzip triticum_aestivum_dna.fa.gz
-#
-## Get annotation
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/triticum_aestivum/Triticum_aestivum.IWGSC.60.gff3.gz -O triticum_aestivum_annotation.gff3.gz
-#gunzip triticum_aestivum_annotation.gff3.gz
-#cd ..
-#
-#
-## Zea Mays ---------------------------------------------------------------------------------
-#echo "Zea Mays"
-#mkdir zea_mays
-#cd zea_mays
-#
-## Get DNA sequence
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/fasta/zea_mays/dna/Zea_mays.Zm-B73-REFERENCE-NAM-5.0.dna.toplevel.fa.gz -O zea_mays_dna.fa.gz
-#gunzip zea_mays_dna.fa.gz
-#
-## Get annotation
-#wget https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-60/gff3/zea_mays/Zea_mays.Zm-B73-REFERENCE-NAM-5.0.60.gff3.gz -O zea_mays_annotation.gff3.gz
-#gunzip zea_mays_annotation.gff3.gz
-#cd ..
-#
-#

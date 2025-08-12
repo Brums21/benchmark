@@ -1,11 +1,14 @@
 #!/bin/bash
 
-mkdir -p ~/data
+BENCHMARK_DIR="$HOME/benchmark"
+TEMP_FASTA_DIR="${BENCHMARK_DIR}/temp_data"
+SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
+RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-ETP"
 
-SPECIES_FOLDER="../../species"
+mkdir -p ${TEMP_FASTA_DIR}
 
-mkdir -p ../results/GeneMark-ETP
-cd ../results/GeneMark-ETP || exit 1
+mkdir -p ${RESULTS_FOLDER}
+cd ${RESULTS_FOLDER} || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -19,9 +22,9 @@ runGeneMarkETP() {
     local HINTS_TYPE="$1"
     local SPECIES_NAME="$2"
     local MUTATION_RATE="$3"
-    local HINTS_FILE="../../../../species/${SPECIES_NAME}/${SPECIES_NAME}_${HINTS_TYPE}.yaml"
+    local HINTS_FILE="${SPECIES_FOLDER}/${SPECIES_NAME}/${SPECIES_NAME}_${HINTS_TYPE}.yaml"
 
-    DNA_FILE="../../../../species/${SPECIES_NAME}/${SPECIES_NAME}_dna.fa"
+    DNA_FILE="${SPECIES_FOLDER}/${SPECIES_NAME}/${SPECIES_NAME}_dna.fa"
     if [ ! -f "$DNA_FILE" ]; then
         echo "DNA file not found for species: ${SPECIES_NAME}. Skipping..."
         return 1
@@ -37,21 +40,21 @@ runGeneMarkETP() {
             return 1
         fi
 
-        mkdir -p data
-
         if [ "$MUTATION_RATE" != "original" ]; then
-            gto_fasta_mutate -e $MUTATION_RATE < ../$DNA_FILE > ~/data/input.fa
+            gto_fasta_mutate -e $MUTATION_RATE < $DNA_FILE > ${TEMP_FASTA_DIR}/input.fa
         else
-            cp ../$DNA_FILE ~/data/input.fa
+            cp $DNA_FILE ${TEMP_FASTA_DIR}/input.fa
         fi
 
         echo "Running GeneMark-ETP for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "../../../../../tools/GeneMark-ETP-main/bin/gmetp.pl --cores 10 --cfg ../${HINTS_FILE}" \
+        runTimedCommand "${BENCHMARK_DIR}/tools/GeneMark-ETP-main/bin/gmetp.pl --cores 10 --cfg ${HINTS_FILE}" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_output.txt" \
             "${SPECIES_NAME}_${HINTS_TYPE}_genemark_time_mem.txt"
 
+        # Eliminar ficheiros temporarios e pesados do Genemark para poupar armazenamento
         rm -r data/
         rm -r rnaseq/
+
         cd ..
     else
         echo "Hints file for ${SPECIES_NAME}_${HINTS_TYPE} not found. Skipping..."
@@ -71,9 +74,9 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         mkdir -p "mr_${MUTATION_RATE}"
         cd "mr_${MUTATION_RATE}" || exit 1
 
-        runGeneMarkETP "genus" "$SPECIES_NAME" "$MUTATION_RATE"
-        runGeneMarkETP "order" "$SPECIES_NAME" "$MUTATION_RATE"
-        runGeneMarkETP "far" "$SPECIES_NAME" "$MUTATION_RATE"
+        for HINT_TYPE in genus order far; do
+            runGeneMarkETP "${HINT_TYPE}" "${SPECIES_NAME}" "${MUTATION_RATE}"
+        done 
 
         cd ..
     done
@@ -81,6 +84,6 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
     cd ..
 done
 
-rm -r ~/data/
+rm -r ${TEMP_FASTA_DIR}
 
-cd ../..
+cd ${BENCHMARK_DIR}

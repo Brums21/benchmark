@@ -1,7 +1,10 @@
 #!/bin/bash
 
-SPECIES_FOLDER="../../species"
-MAPPING_FILE="species_model_augustus.txt"
+BENCHMARK_DIR="$HOME/benchmark"
+
+SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
+MAPPING_FILE="${BENCHMARK_DIR}/config/species_model_augustus.txt"
+AUGUSTUS_RESULTS_FOLDER=${BENCHMARK_DIR}/results/tools/augustus
 
 if [ ! -f "$MAPPING_FILE" ]; then
     echo "Error: Mapping file '${MAPPING_FILE}' not found!"
@@ -10,8 +13,8 @@ fi
 
 source "$MAPPING_FILE"
 
-mkdir -p ../results/augustus
-cd ../results/augustus || exit 1
+mkdir -p ${AUGUSTUS_RESULTS_FOLDER}
+cd ${AUGUSTUS_RESULTS_FOLDER} || exit 1
 
 runTimedCommand() {
     local CMD="$1"
@@ -26,21 +29,25 @@ runProthint() {
     local SPECIES_NAME="$2"
     local DNA_FILE="$3"
     local MUTATION_RATE="$4"
-    local HINTS_FILE="../../../../../hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
+    local HINTS_FILE="${BENCHMARK_DIR}/species/hints/${SPECIES_NAME}_${HINTS_TYPE}.fa"
 
     if [ -f "$HINTS_FILE" ]; then
         echo "Checking if prothint augustus file already exists in GeneMark-EPp results."
-        if [ -f "../../../../../results/GeneMark-EPp/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/prothint_augustus.gff" ]; then
+
+        if [ -f "${BENCHMARK_DIR}/results/tools/GeneMark-EPp/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/prothint_augustus.gff" ]; then
+
             echo "Prothint file already exists, no need to compute again."
-            cp ../../../../../results/GeneMark-EPp/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/prothint_augustus.gff .
+            cp ${BENCHMARK_DIR}/results/tools/GeneMark-EPp/${SPECIES_NAME}/mr_${MUTATION_RATE}/${HINTS_TYPE}/prothint_augustus.gff .
         else
+
             echo "Prothint file not found in Genemark results. Running ProtHint for ${SPECIES_NAME} with hints: $HINTS_TYPE"
-            runTimedCommand "./../../../../../tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
+            runTimedCommand "${BENCHMARK_DIR}/tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
         fi
 
         return 0
     else
+
         echo "No hint file for this species and hint type. Skipping..."
         return 1
     fi
@@ -58,9 +65,9 @@ runAUGUSTUS() {
     cd "$MODE" || exit 1
 
     if [ "$MUTATION_RATE" != "original" ]; then
-        gto_fasta_mutate -e $MUTATION_RATE < ../../../$DNA_FILE > input.fa
+        gto_fasta_mutate -e $MUTATION_RATE < $DNA_FILE > input.fa
     else
-        cp ../../../$DNA_FILE input.fa
+        cp $DNA_FILE input.fa
     fi
 
     if [ -f "augustus.gtf" ]; then
@@ -71,7 +78,7 @@ runAUGUSTUS() {
 
     if [ "$MODE" != "abinitio" ]; then
         if runProthint "$MODE" "$SPECIES_NAME" "input.fa" "$MUTATION_RATE"; then
-            HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=../../../../../benchmark/benchmarking_scripts/extrinsic.cfg"
+            HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=${BENCHMARK_DIR}/config/extrinsic.cfg"
         else
             cd ..
             return
@@ -79,7 +86,7 @@ runAUGUSTUS() {
     fi
 
     echo "Running AUGUSTUS ($MODE) for ${SPECIES_NAME} using model ${AUGUSTUS_MODEL}..."
-    runTimedCommand "./../../../../../tools/Augustus-3.5.0/bin/augustus --outfile=augustus.gtf --species=$AUGUSTUS_MODEL $HINTS_OPTION input.fa" \
+    runTimedCommand "${BENCHMARK_DIR}/tools/Augustus-3.5.0/bin/augustus --outfile=augustus.gtf --species=$AUGUSTUS_MODEL $HINTS_OPTION input.fa" \
         "${SPECIES_NAME}_${MODE}_augustus_output.txt" "${SPECIES_NAME}_${MODE}_augustus_time_mem.txt"
     
     rm input.fa
@@ -107,10 +114,9 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
         mkdir -p "mr_${MUTATION_RATE}"
         cd "mr_${MUTATION_RATE}" || exit 1
 
-        runAUGUSTUS "abinitio" "$SPECIES_NAME" "$DNA_FILE" "$AUGUSTUS_MODEL" "$MUTATION_RATE"
-        runAUGUSTUS "genus" "$SPECIES_NAME" "$DNA_FILE" "$AUGUSTUS_MODEL" "$MUTATION_RATE"
-        runAUGUSTUS "order" "$SPECIES_NAME" "$DNA_FILE" "$AUGUSTUS_MODEL" "$MUTATION_RATE"
-        runAUGUSTUS "far" "$SPECIES_NAME" "$DNA_FILE" "$AUGUSTUS_MODEL" "$MUTATION_RATE"
+        for HINT_NAME in abinitio genus order far; do
+            runAUGUSTUS "${HINT_NAME}" "$SPECIES_NAME" "$DNA_FILE" "$AUGUSTUS_MODEL" "$MUTATION_RATE"
+        done
 
         cd ..
 

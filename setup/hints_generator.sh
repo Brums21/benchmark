@@ -1,7 +1,11 @@
 #!/bin/bash
 
-mkdir -p hints/temp
-cd hints/temp || exit 1
+BENCHMARK_DIR="$HOME/benchmark"
+TEMP_DIR=${BENCHMARK_DIR}/temp
+HINTS_FOLDER=${BENCHMARK_DIR}/species/hints
+
+mkdir -p ${TEMP_DIR}
+cd ${TEMP_DIR} || exit 1
 
 # 1o - fazer download de todas as sequencias de proteinas a serem usadas 
 
@@ -98,32 +102,32 @@ fi
 # 2o - organizar sets para servir como inputs 
 
 # A. thaliana including same genus
-cat arabidopsis_lyrata_pep.fa arabidopsis_halleri_pep.fa > ../arabidopsis_thaliana_genus.fa
+cat arabidopsis_lyrata_pep.fa arabidopsis_halleri_pep.fa > ${HINTS_FOLDER}/arabidopsis_thaliana_genus.fa
 
 # A. thaliana including same order
-cat eutrema_salsugineum_pep.fa brassica_napus_pep.fa > ../arabidopsis_thaliana_order.fa
+cat eutrema_salsugineum_pep.fa brassica_napus_pep.fa > ${HINTS_FOLDER}/arabidopsis_thaliana_order.fa
 
 # A. thaliana no order
-cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ../arabidopsis_thaliana_far.fa
+cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ${HINTS_FOLDER}/arabidopsis_thaliana_far.fa
 
 # O. sativa including same genus
-cat oryza_nivara_pep.fa oryza_barthii_pep.fa > ../oryza_sativa_genus.fa
+cat oryza_nivara_pep.fa oryza_barthii_pep.fa > ${HINTS_FOLDER}/oryza_sativa_genus.fa
 
 # O. sativa including same order
-cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ../oryza_sativa_order.fa
+cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ${HINTS_FOLDER}/oryza_sativa_order.fa
 
 # O. sativa no order
-cat eutrema_salsugineum_pep.fa brassica_napus_pep.fa > ../oryza_sativa_far.fa
+cat eutrema_salsugineum_pep.fa brassica_napus_pep.fa > ${HINTS_FOLDER}/oryza_sativa_far.fa
 
 # G. raimondii including same order
-cat corchorus_capsularis_pep.fa theobroma_cacao_pep.fa > ../gossypium_raimondii_order.fa
+cat corchorus_capsularis_pep.fa theobroma_cacao_pep.fa > ${HINTS_FOLDER}/gossypium_raimondii_order.fa
 
 # G. raimondii no order
-cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ../gossypium_raimondii_far.fa
+cat zea_mays_pep.fa hordeum_vulgare_pep.fa > ${HINTS_FOLDER}/gossypium_raimondii_far.fa
 
 # M. esculenta no order
-cat theobroma_cacao_pep.fa corchorus_capsularis_pep.fa > ../manihot_esculenta_far.fa
+cat theobroma_cacao_pep.fa corchorus_capsularis_pep.fa > ${HINTS_FOLDER}/manihot_esculenta_far.fa
 
 # 3o - Eliminar ficheiros temporários e manter apenas as combinações
 cd ..
-rm -r temp/
+rm -r ${TEMP_DIR}
