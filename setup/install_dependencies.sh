@@ -16,9 +16,8 @@ make
 make install
 
 #TODO: adicionar isto a bashrc
-export ZLIB_INCLUDE=${LIB_DIR}/zlib/zlib_install/include
-export ZLIB_LIBRARY_PATH=${LIB_DIR}/zlib/zlib_install/lib
-
+echo 'export ZLIB_INCLUDE=${LIB_DIR}/zlib/zlib_install/include' >> ~/.bashrc
+echo 'export ZLIB_LIBRARY_PATH=${LIB_DIR}/zlib/zlib_install/lib' >> ~/.bashrc
 
 #instalar boost -> libboost-iostreams-dev e libbost-all-dev
 mkdir -p ${LIB_DIR}/boost/boost_build
@@ -130,7 +129,7 @@ autoconf -Wno-syntax
 make
 make install
 
-export PATH="$PATH:${LIB_DIR}/samtools/samtools_install/bin/"
+echo 'export PATH="$PATH:${LIB_DIR}/samtools/samtools_install/bin/"'>> ~/.bashrc
 
 #install HAL
 mkdir -p ${LIB_DIR}/hdf5/hdf5_build
@@ -143,23 +142,24 @@ cd ${LIB_DIR}/hdf5/hdf5_build/hdf5-1.10.1
 make
 make install
 
-export PATH="$PATH:${LIB_DIR}/hdf5/hdf5_install/bin"
+echo 'export PATH="$PATH:${LIB_DIR}/hdf5/hdf5_install/bin'>> ~/.bashrc
 
 # install sonLib
 git clone https://github.com/benedictpaten/sonLib.git ${LIB_DIR}/sonLib
 cd ${LIB_DIR}/sonLib
-export CPPFLAGS="-I/${LIB_DIR}/zlib/zlib_install/include -L/${LIB_DIR}/zlib/zlib_install/lib"
+echo 'export CPPFLAGS="-I/${LIB_DIR}/zlib/zlib_install/include -L/${LIB_DIR}/zlib/zlib_install/lib"'>> ~/.bashrc
 make
 unset CPPFLAGS
 
 # install hal
 git clone https://github.com/ComparativeGenomicsToolkit/hal.git ${LIB_DIR}/hal
 cd ${LIB_DIR}/hal
-export RANLIB=ranlib
+echo 'export RANLIB=ranlib'>> ~/.bashrc
 make
 
-export PATH="$PATH:${LIB_DIR}/hdf5/hdf5_install/bin"
-export PATH="$PATH:${LIB_DIR}/hal/bin/"
+echo 'export PATH="$PATH:${LIB_DIR}/hdf5/hdf5_install/bin"'>> ~/.bashrc
+echo 'export PATH="$PATH:${LIB_DIR}/hal/bin/"'>> ~/.bashrc
+
 
 #libbz2-dev
 mkdir -p libbz2-dev
