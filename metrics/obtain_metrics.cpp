@@ -350,6 +350,8 @@ int main(int argc, char* argv[]) {
 
             // nao ha output folder definido - colocar na mesma pasta onde está os ficheiros a serem analizados
             if (!output_folder.empty()){
+                std::filesystem::create_directories(output_folder);
+                
                 output_file = output_folder + "/" + base_name;
             }
 
@@ -380,8 +382,10 @@ int main(int argc, char* argv[]) {
         std::string output_file = (p.parent_path() / base_name).string();
         fs::path csv_file = p.parent_path() / (base_name + ".csv");
 
-        // nao ha output folder definido - colocar na mesma pasta onde está os ficheiros a serem analizados
+        // se nao ha output folder definido, colocar na mesma pasta onde está os ficheiros a serem analizados
         if (!output_folder.empty()){
+            std::filesystem::create_directories(output_folder);
+
             output_file = output_folder + "/" + base_name;
             csv_file = output_folder + "/" + base_name + ".csv";
         }
@@ -392,7 +396,6 @@ int main(int argc, char* argv[]) {
         } else {
             preds = parse_gff_parallel(pred_input, threads);
         }
-
         
         std::ofstream ofs(csv_file);
         evaluate_and_write_csv(refs, preds, ofs);

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd setup/
+
 # get species 
 ./get_species_info
 
@@ -11,6 +13,3 @@
 
 # get tools
 ./get_tools
-
-# get dependencies
-./install_dependencies
