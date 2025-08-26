@@ -1,16 +1,6 @@
 #!/bin/bash
 
-BENCHMARK_DIR="$HOME/benchmark" #TODO: mudar isto para a configuracao do home directory -> .json ou .cfg
-
-# Check if wget and unzip are installed
-command -v wget >/dev/null 2>&1 || { 
-    echo "wget is required but not installed. Installing..."; 
-    apt-get install wget;
-}
-command -v unzip >/dev/null 2>&1 || { 
-    echo "Unzip is required but not installed. Installing...";
-    apt-get install unzip;
-}
+BENCHMARK_DIR="$HOME/benchmark"
 
 mkdir -p ${BENCHMARK_DIR}/tools
 cd ${BENCHMARK_DIR}/tools || exit 1

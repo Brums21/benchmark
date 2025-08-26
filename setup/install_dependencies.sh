@@ -15,7 +15,6 @@ cd ${LIB_DIR}/zlib/zlib_build/zlib-1.2.11
 make
 make install
 
-#TODO: adicionar isto a bashrc
 echo 'export ZLIB_INCLUDE=${LIB_DIR}/zlib/zlib_install/include' >> ~/.bashrc
 echo 'export ZLIB_LIBRARY_PATH=${LIB_DIR}/zlib/zlib_install/lib' >> ~/.bashrc
 
