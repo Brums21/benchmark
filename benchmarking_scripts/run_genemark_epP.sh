@@ -4,7 +4,6 @@
 # O script hints_generator.sh gera sequÃªncias de proteÃ­nas para diferentes nÃ­veis taxonÃ´micos (gÃªnero, ordem, etc.).
 # Mais informaÃ§Ãµes podem ser encontradas nos comentÃ¡rios do script.
 
-BENCHMARK_DIR="$HOME/benchmark"
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 HINTS_FOLDER="${BENCHMARK_DIR}/species/hints"
 RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-EPp"

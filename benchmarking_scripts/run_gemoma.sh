@@ -1,7 +1,5 @@
 #!/bin/bash
 
-BENCHMARK_DIR="$HOME/benchmark"
-
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 REFERENCE_SPECIES_FOLDER="${BENCHMARK_DIR}/species/reference_species"
 

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-BENCHMARK_DIR="$HOME/benchmark"
-
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 MAPPING_FILE="${BENCHMARK_DIR}/config/species_model_augustus.txt"
 AUGUSTUS_RESULTS_FOLDER=${BENCHMARK_DIR}/results/tools/augustus

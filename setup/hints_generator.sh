@@ -1,6 +1,5 @@
 #!/bin/bash
 
-BENCHMARK_DIR="$HOME/benchmark"
 TEMP_DIR=${BENCHMARK_DIR}/temp
 HINTS_FOLDER=${BENCHMARK_DIR}/species/hints
 

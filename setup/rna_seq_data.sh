@@ -1,6 +1,5 @@
 #!/bin/bash
 
-BENCHMARK_DIR="$HOME/benchmark"
 SPECIES_DIR="${BENCHMARK_DIR}/species/benchmark_species"
 
 declare -A RUN_IDS_MAP=(

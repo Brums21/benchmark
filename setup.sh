@@ -2,7 +2,8 @@
 
 BENCHMARK_DIR=$(pwd)
 
-echo "\n export BENCHMARK_DIR=${BENCHMARK_DIR}" >> ~/.bashrc
+echo "" >> ~/.bashrc
+echo "export BENCHMARK_DIR=${BENCHMARK_DIR}" >> ~/.bashrc
 
 # Check if unzip and gzip are installed
 command -v gzip >/dev/null 2>&1 || { 

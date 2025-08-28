@@ -1,8 +1,6 @@
 #!/bin/bash
 # This script downloads the DNA sequences and annotation from the first chromossome of 4 species
 
-BENCHMARK_DIR="$HOME/benchmark" #TODO: mudar isto para a configuracao do home directory -> .json ou .cfg
-
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 REFERENCES_FOLDER="${BENCHMARK_DIR}/species/reference_species"
 

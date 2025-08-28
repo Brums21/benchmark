@@ -1,7 +1,5 @@
 #!/bin/bash
 
-BENCHMARK_DIR="$HOME/benchmark"
-
 mkdir -p ${BENCHMARK_DIR}/tools
 cd ${BENCHMARK_DIR}/tools || exit 1
 

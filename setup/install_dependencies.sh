@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 LIB_DIR=${BENCHMARK_DIR}/libs
 
 mkdir -p libs/
