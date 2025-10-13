@@ -32,17 +32,6 @@ else
     echo "AUGUSTUS is already installed. Skipping..."
 fi
 
-# Seqping
-echo -e "\n\nSeqping ------------------------------------------------------"
-if [ ! -d "seqping_0.1.45.1" ]; then
-    echo "Installing Seqping..."
-    wget https://sourceforge.net/projects/seqping/files/latest/download -O Seqping_0.1.45.1.tar.gz
-    tar -xvzf Seqping_0.1.45.1.tar.gz
-    rm Seqping_0.1.45.1.tar.gz
-else
-    echo "Seqping is already installed. Skipping..."
-fi
-
 # SNAP
 echo -e "\n\nSNAP ------------------------------------------------------"
 if [ ! -d "SNAP-master" ]; then
@@ -67,6 +56,29 @@ if [ ! -d "GeMoMa" ]; then
     cd ..
 else 
     echo "GeMoMa is already installed. Skipping..."
+fi 
+
+# GeAnno
+echo -e "\n\GeAnno ------------------------------------------------------"
+if [ ! -d "GeAnno" ]; then
+    echo "Installing GeAnno..."
+    wget https://github.com/cobilab/GeAnno/archive/refs/heads/main.zip -O GeAnno.zip
+    mkdir GeAnno
+    mv GeAnno.zip GeAnno/
+    cd GeAnno
+    unzip GeAnno.zip
+    rm GeAnno.zip
+
+    # setup
+    echo "export PLANT_DIR=$(pwd)" >> ~/.bashrc
+    source ~/.bashrc
+
+    chmod +x ./setup.sh
+    ./setup.sh -t
+
+    cd ..
+else 
+    echo "GeAnno is already installed. Skipping..."
 fi 
 
 cd ${BENCHMARK_DIR}

@@ -3,7 +3,6 @@
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/SNAP"
 
-
 mkdir -p ${RESULTS_FOLDER}
 cd ${RESULTS_FOLDER} || exit 1
 

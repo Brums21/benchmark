@@ -11,3 +11,5 @@
 ./run_genemark_etp
 
 ./run_snap
+
+./run_geanno

@@ -31,3 +31,11 @@
 **.csv
 /results_csv_excel/*
 
+plots/ab_initio/*
+plots/evidence/*
+plots/comparison/*
+plots/geanno/*
+
+plots/__pycache__/*
+
+nohup.out

@@ -1,17 +1,17 @@
-#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
-#include <vector>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
-#include <thread>
-#include <mutex>
-#include <cmath>
-#include <iomanip>
+#include <vector>
 #include <cstring>
-#include <algorithm>
-#include <filesystem>
 
 struct GFFFeature {
     std::string seqid;
@@ -30,18 +30,26 @@ inline uint64_t encode_nuc(int seqid_id, int pos, char strand) {
 
 std::vector<GFFFeature> parse_gff_parallel(const std::string& file_path, unsigned n_threads) {
     std::ifstream file(file_path);
+    if (!file) {
+        throw std::runtime_error("Cannot open GFF file: " + file_path);
+    }
+
     std::vector<std::string> lines;
     std::string line;
-    while (std::getline(file, line))
+    lines.reserve(1 << 20);
+    while (std::getline(file, line)) {
         if (!line.empty() && line[0] != '#') lines.emplace_back(std::move(line));
+    }
 
     size_t n = lines.size();
     std::vector<GFFFeature> features;
+    features.reserve(n);
     std::mutex mtx;
     std::vector<std::thread> threads;
 
     auto worker = [&](size_t beg, size_t end) {
         std::vector<GFFFeature> local;
+        local.reserve(end > beg ? (end - beg) : 0);
         for (size_t i = beg; i < end; ++i) {
             std::istringstream ss(lines[i]);
             std::string seq, src, type, st, en, score, strand, phase, attrs;
@@ -55,32 +63,31 @@ std::vector<GFFFeature> parse_gff_parallel(const std::string& file_path, unsigne
                   std::getline(ss, phase, '\t') &&
                   std::getline(ss, attrs))) continue;
 
-            double scr = score == "." ? 0.0 : std::stod(score);
+            double scr = (score == "." ? 0.0 : std::stod(score));
+            int s = std::stoi(st);
+            int e = std::stoi(en);
+            if (s > e) std::swap(s, e);
 
-            local.push_back({std::move(seq), std::move(type),
-                            std::stoi(st), std::stoi(en),
-                            strand[0], scr});
+            local.push_back({std::move(seq), std::move(type), s, e, strand.empty() ? '+' : strand[0], scr});
         }
         std::lock_guard<std::mutex> lock(mtx);
         features.insert(features.end(), local.begin(), local.end());
     };
 
+    if (n_threads == 0) n_threads = 1;
     size_t chunk = (n + n_threads - 1) / n_threads;
     for (unsigned i = 0; i < n_threads; ++i) {
         size_t beg = i * chunk, end = std::min(n, beg + chunk);
         threads.emplace_back(worker, beg, end);
     }
-    for (auto &t : threads) t.join();
+    for (auto& t : threads) t.join();
     return features;
 }
 
 void evaluate_auc(const std::vector<GFFFeature>& refs,
                   const std::vector<GFFFeature>& preds,
-                  const std::string& out_path) {
-
-    std::vector<std::pair<double, double>> roc_points;  // (FPR, TPR)
-    std::vector<std::pair<double, double>> prc_points;  // (Recall, Precision)
-
+                  const std::string& out_path_noext) {
+    // Build nucleotide sets and scores for genes only
     std::unordered_map<std::string, int> seqid_to_id;
     int next_id = 0;
     auto get_seqid_id = [&](const std::string& s) -> int {
@@ -97,45 +104,51 @@ void evaluate_auc(const std::vector<GFFFeature>& refs,
             ref_nucs.insert(encode_nuc(id, p, f.strand));
     }
 
-    std::vector<std::pair<double, bool>> scores;
+    std::vector<std::pair<double, bool>> scores;  // (score, is_positive)
+    scores.reserve(ref_nucs.size());
     for (const auto& f : preds) {
         if (f.feature_type != "gene") continue;
         int id = get_seqid_id(f.seqid);
         for (int p = f.start; p <= f.end; ++p) {
             uint64_t enc = encode_nuc(id, p, f.strand);
-            scores.emplace_back(f.score, ref_nucs.count(enc));
+            scores.emplace_back(f.score, ref_nucs.count(enc) != 0);
         }
     }
 
-    std::sort(scores.begin(), scores.end(), [](auto& a, auto& b) {
-        return a.first > b.first;
-    });
+    if (scores.empty()) {
+        std::ofstream out(out_path_noext + "_auc.csv");
+        out << "AUC_ROC,AUC_PRC\n0.0000,0.0000\n";
+        std::ofstream roc(out_path_noext + "_roc.csv"); roc << "FPR,TPR\n";
+        std::ofstream prc(out_path_noext + "_prc.csv"); prc << "Recall,Precision\n";
+        return;
+    }
+
+    std::sort(scores.begin(), scores.end(), [](auto& a, auto& b) { return a.first > b.first; });
 
     double tp = 0, fp = 0;
-    double prev_tpr = 0.0, prev_fpr = 0.0;
-    double prev_recall = 0.0;
+    double prev_tpr = 0.0, prev_fpr = 0.0, prev_recall = 0.0;
     double auc = 0.0, aucpr = 0.0;
 
-    int P = std::count_if(scores.begin(), scores.end(), [](auto& p) { return p.second; });
-    int N = scores.size() - P;
+    int P = 0;
+    for (auto& s : scores) if (s.second) ++P;
+    int N = static_cast<int>(scores.size()) - P;
+
+    std::vector<std::pair<double,double>> roc_points;
+    std::vector<std::pair<double,double>> prc_points;
+    roc_points.reserve(scores.size());
+    prc_points.reserve(scores.size());
 
     for (size_t i = 0; i < scores.size(); ++i) {
-        if (scores[i].second) tp++;
-        else fp++;
+        if (scores[i].second) ++tp; else ++fp;
 
         double tpr = (P > 0) ? tp / P : 0.0;
         double fpr = (N > 0) ? fp / N : 0.0;
         double precision = (tp + fp > 0) ? tp / (tp + fp) : 1.0;
         double recall = tpr;
 
-        // Store points
         roc_points.emplace_back(fpr, tpr);
         prc_points.emplace_back(recall, precision);
-
-        // AUC-ROC: trapezoid integration over (fpr, tpr)
-        auc += (fpr - prev_fpr) * (tpr + prev_tpr) / 2;
-
-        // AUC-PRC: stepwise area
+        auc += (fpr - prev_fpr) * (tpr + prev_tpr) / 2.0;
         aucpr += (recall - prev_recall) * precision;
 
         prev_fpr = fpr;
@@ -143,82 +156,25 @@ void evaluate_auc(const std::vector<GFFFeature>& refs,
         prev_recall = recall;
     }
 
-    // Write AUC summary
-    std::ofstream out(out_path + "_auc.csv");
+    std::ofstream out(out_path_noext + "_auc.csv");
     out << "AUC_ROC,AUC_PRC\n";
     out << std::fixed << std::setprecision(4) << auc << "," << aucpr << "\n";
 
-    // Write ROC curve points
-    std::ofstream roc_out(out_path + "_roc.csv");
+    std::ofstream roc_out(out_path_noext + "_roc.csv");
     roc_out << "FPR,TPR\n";
     for (auto& p : roc_points)
         roc_out << std::fixed << std::setprecision(6) << p.first << "," << p.second << "\n";
 
-    // Write PRC curve points
-    std::ofstream prc_out(out_path + "_prc.csv");
+    std::ofstream prc_out(out_path_noext + "_prc.csv");
     prc_out << "Recall,Precision\n";
     for (auto& p : prc_points)
         prc_out << std::fixed << std::setprecision(6) << p.first << "," << p.second << "\n";
 }
 
-
-std::vector<GFFFeature> read_txt_format(const std::string& file_path) {
-    std::ifstream file(file_path);
-
-    std::vector<GFFFeature> features;
-    std::string line;
-
-    while (std::getline(file, line)) {
-        if (line.empty() || line.find("Label:") == std::string::npos) continue;
-
-        std::string chromosome, strand, type;
-        std::string start_str, end_str;
-        int start = 0, end = 0;
-
-        std::istringstream ss(line);
-        std::string token;
-
-        while (ss >> token) {
-            if (token == "Chromosome:") {
-                ss >> chromosome;
-                if (!chromosome.empty() && chromosome[0] == '>')
-                    chromosome = chromosome.substr(1);
-                if (!chromosome.empty() && chromosome.back() == ',')
-                    chromosome.pop_back();
-            } else if (token == "Strand:") {
-                ss >> strand;
-                if (!strand.empty() && strand.back() == ',')
-                    strand.pop_back();
-            } else if (token == "Label:") {
-                ss >> type;
-                if (!type.empty() && type.back() == ',')
-                    type.pop_back();
-            } else if ((token == "Start:") || (token == "Start_Center:")) {
-                ss >> start_str;
-                if (!start_str.empty() && start_str.back() == ',')
-                    start_str.pop_back();
-                start = (start_str != "None") ? std::stoi(start_str) : -1;
-            } else if ((token == "End:") || (token == "End_Center:")) {
-                ss >> end_str;
-                if (!end_str.empty() && end_str.back() == ',')
-                    end_str.pop_back();
-                end = (end_str != "None") ? std::stoi(end_str) : -1;
-            }
-        }
-
-        if (!chromosome.empty() && !type.empty() && start != -1 && end != -1) {
-            char strand_char = (strand == "reverse") ? '-' : '+';
-            features.push_back({chromosome, type, start, end, strand_char});
-        }
-    }
-
-    return features;
-}
-
-void compute_nucleotide_overlap(const std::vector<GFFFeature>& refs,
-                                const std::vector<GFFFeature>& preds,
-                                const std::string& label,
-                                std::ostream& out) {
+void write_gene_nucleotide_csv(const std::vector<GFFFeature>& refs,
+                               const std::vector<GFFFeature>& preds,
+                               const std::filesystem::path& csv_path) {
+    
     std::unordered_map<std::string, int> seqid_to_id;
     int next_id = 0;
     auto get_seqid_id = [&](const std::string& s) -> int {
@@ -229,181 +185,136 @@ void compute_nucleotide_overlap(const std::vector<GFFFeature>& refs,
 
     std::unordered_set<uint64_t> ref_nucs, pred_nucs;
 
-    auto fill_set = [&](const std::vector<GFFFeature>& data,
-                        std::unordered_set<uint64_t>& target,
-                        const std::string& feat) {
+    auto fill_gene = [&](const std::vector<GFFFeature>& data,
+                         std::unordered_set<uint64_t>& target) {
         for (const auto& f : data) {
-            if (f.feature_type != feat) continue;
+            if (f.feature_type != "gene") continue;
             int id = get_seqid_id(f.seqid);
             for (int p = f.start; p <= f.end; ++p)
                 target.insert(encode_nuc(id, p, f.strand));
         }
     };
 
-    fill_set(refs, ref_nucs, label);
-    fill_set(preds, pred_nucs, label);
+    fill_gene(refs, ref_nucs);
+    fill_gene(preds, pred_nucs);
 
     int TP = 0;
     for (const auto& n : pred_nucs)
         if (ref_nucs.count(n)) ++TP;
 
-    int FN = ref_nucs.size() - TP;
-    int FP = pred_nucs.size() - TP;
+    int FN = static_cast<int>(ref_nucs.size()) - TP;
+    int FP = static_cast<int>(pred_nucs.size()) - TP;
     double sens = (TP + FN) ? 100.0 * TP / (TP + FN) : 0.0;
     double spec = (TP + FP) ? 100.0 * TP / (TP + FP) : 0.0;
 
-    out << label << "_nucleotide," << TP << ',' << FP << ',' << FN << ','
+    std::ofstream out(csv_path);
+    out << "label,tp,fp,fn,sensitivity,specificity\n";
+    out << "gene_nucleotide," << TP << ',' << FP << ',' << FN << ','
         << std::fixed << std::setprecision(2) << sens << ',' << spec << '\n';
 }
 
-void evaluate_and_write_csv(const std::vector<GFFFeature>& refs,
-                            const std::vector<GFFFeature>& preds,
-                            std::ostream& out) {
-    const std::unordered_set<std::string> valid_labels = {"gene", "mRNA", "CDS", "exon"};
-
-    std::unordered_map<std::string, std::unordered_set<std::string>> ref_by, pred_by;
-
-    auto encode = [](const GFFFeature& f) {
-        return f.seqid + ":" + std::to_string(f.start) + "-" + std::to_string(f.end) + ":" + f.strand;
-    };
-
-    for (const auto& f : refs)
-        if (valid_labels.count(f.feature_type))
-            ref_by[f.feature_type].insert(encode(f));
-
-    for (const auto& f : preds)
-        if (valid_labels.count(f.feature_type))
-            pred_by[f.feature_type].insert(encode(f));
-
-    std::vector<std::string> all_labels;
-    for (const auto& kv : ref_by) all_labels.push_back(kv.first);
-    for (const auto& kv : pred_by)
-        if (ref_by.find(kv.first) == ref_by.end())
-            all_labels.push_back(kv.first);
-
-    out << "label,tp,fp,fn,sensitivity,specificity\n";
-
-    for (const auto& label : all_labels) {
-        const auto& ref_set = ref_by[label];
-        const auto& pred_set = pred_by[label];
-
-        std::unordered_set<std::string> intersection;
-        for (const auto& s : pred_set)
-            if (ref_set.count(s)) intersection.insert(s);
-
-        int TP = intersection.size();
-        int FN = ref_set.size() - TP;
-        int FP = pred_set.size() - TP;
-
-        double sens = (TP + FN) ? 100.0 * TP / (TP + FN) : 0.0;
-        double spec = (TP + FP) ? 100.0 * TP / (TP + FP) : 0.0;
-
-        out << label << ',' << TP << ',' << FP << ',' << FN << ','
-            << std::fixed << std::setprecision(2)
-            << sens << ',' << spec << '\n';
-    }
-
-    compute_nucleotide_overlap(refs, preds, "CDS", out);
-    compute_nucleotide_overlap(refs, preds, "gene", out);
+static inline bool is_gff_like(const std::filesystem::path& p) {
+    std::string ext = p.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    return (ext == ".gff" || ext == ".gff3");
 }
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <reference GFF3 file> <predictions file or folder> [--output_folder path] [--threads N]\n";
+        std::cerr << "Usage: " << argv[0]
+                  << " <reference.gff[3]> <predictions file or folder> [--output_folder path] [--threads N]\n";
         return 1;
     }
 
-    std::string ref_file = argv[1], pred_input = argv[2], out_file;
+    namespace fs = std::filesystem;
+
+    std::string ref_file = argv[1];
+    std::string pred_input = argv[2];
     unsigned threads = std::thread::hardware_concurrency();
-    std::string output_folder = "";
+    std::string output_folder;
 
     for (int i = 3; i < argc; ++i) {
-        if (std::strcmp(argv[i], "--threads") == 0 && i+1 < argc) {
-            threads = std::stoi(argv[++i]);
-        } else
-        if (std::strcmp(argv[i], "--output_folder") == 0 && i+1 < argc) {
+        if (std::strcmp(argv[i], "--threads") == 0 && i + 1 < argc) {
+            threads = static_cast<unsigned>(std::stoul(argv[++i]));
+        } else if (std::strcmp(argv[i], "--output_folder") == 0 && i + 1 < argc) {
             output_folder = argv[++i];
-        }
-        else {
+        } else {
             std::cerr << "Unknown argument: " << argv[i] << '\n';
             return 1;
         }
     }
 
-    std::vector<GFFFeature> refs = parse_gff_parallel(ref_file, threads);
+    if (!is_gff_like(ref_file)) {
+        std::cerr << "Reference must be GFF/GFF3: " << ref_file << "\n";
+        return 1;
+    }
 
-    namespace fs = std::filesystem;
+    std::vector<GFFFeature> refs;
+    try {
+        refs = parse_gff_parallel(ref_file, threads);
+    } catch (const std::exception& e) {
+        std::cerr << "Error parsing reference: " << e.what() << "\n";
+        return 1;
+    }
+
     fs::path pred_path(pred_input);
 
     if (fs::is_directory(pred_path)) {
+        fs::path out_dir = output_folder.empty() ? pred_path : fs::path(output_folder);
+        if (!output_folder.empty()) fs::create_directories(out_dir);
 
         for (const auto& entry : fs::directory_iterator(pred_path)) {
             if (!entry.is_regular_file()) continue;
+            const fs::path file_path = entry.path();
 
-            auto file_path = entry.path();
-            
-            if (file_path.extension() == ".csv") continue;
-            
-            std::string base_name = file_path.stem().string();
-            
-            std::string output_file = (file_path.parent_path() / base_name).string();
-
-            // nao ha output folder definido - colocar na mesma pasta onde está os ficheiros a serem analizados
-            if (!output_folder.empty()){
-                std::filesystem::create_directories(output_folder);
-                
-                output_file = output_folder + "/" + base_name;
+            if (!is_gff_like(file_path)) {
+                continue;
             }
 
-            std::cout << "Processing " << file_path.filename() << "\n";
+            const std::string base_name = file_path.stem().string();
+
+            fs::path csv_file = out_dir / (base_name + ".csv");
+            fs::path auc_base = (out_dir / base_name).string();
+
+            std::cout << "Processing " << file_path.filename().string() << "\n";
 
             std::vector<GFFFeature> preds;
-            if (file_path.extension() == ".txt") {
-                preds = read_txt_format(file_path.string());
-                evaluate_auc(refs, preds, output_file);
-            } else {
+            try {
                 preds = parse_gff_parallel(file_path.string(), threads);
+            } catch (const std::exception& e) {
+                std::cerr << "  Skipping (parse error): " << e.what() << "\n";
+                continue;
             }
 
-            std::ofstream ofs(file_path.parent_path() / (base_name + ".csv"));
-            evaluate_and_write_csv(refs, preds, ofs);
-
-            if (base_name.rfind("augustus_", 0) == 0) {
-                evaluate_auc(refs, preds, output_file);
-            }
+            write_gene_nucleotide_csv(refs, preds, csv_file);
+            evaluate_auc(refs, preds, auc_base.string());
         }
-    }
-    else {
+    } else {
+        if (!is_gff_like(pred_path)) {
+            std::cerr << "Predictions must be GFF/GFF3 (no .txt): " << pred_input << "\n";
+            return 1;
+        }
+
         std::cout << "Processing single file: " << pred_input << "\n";
+        const std::string base_name = pred_path.stem().string();
+
+        fs::path out_dir = output_folder.empty() ? pred_path.parent_path()
+                                                 : fs::path(output_folder);
+        if (!output_folder.empty()) fs::create_directories(out_dir);
+
+        fs::path csv_file = out_dir / (base_name + ".csv");
+        fs::path auc_base = (out_dir / base_name).string();
+
         std::vector<GFFFeature> preds;
-        fs::path p(pred_input);
-        std::string base_name = p.stem().string();
-
-        std::string output_file = (p.parent_path() / base_name).string();
-        fs::path csv_file = p.parent_path() / (base_name + ".csv");
-
-        // se nao ha output folder definido, colocar na mesma pasta onde está os ficheiros a serem analizados
-        if (!output_folder.empty()){
-            std::filesystem::create_directories(output_folder);
-
-            output_file = output_folder + "/" + base_name;
-            csv_file = output_folder + "/" + base_name + ".csv";
-        }
-
-        if (p.extension() == ".txt") {
-            preds = read_txt_format(pred_input);
-            evaluate_auc(refs, preds, output_file);
-        } else {
+        try {
             preds = parse_gff_parallel(pred_input, threads);
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing predictions: " << e.what() << "\n";
+            return 1;
         }
-        
-        std::ofstream ofs(csv_file);
-        evaluate_and_write_csv(refs, preds, ofs);
 
-        // always check base name for augustus_
-        if (base_name.rfind("augustus_", 0) == 0){
-            evaluate_auc(refs, preds, output_file);
-        }
+        write_gene_nucleotide_csv(refs, preds, csv_file);
+        evaluate_auc(refs, preds, auc_base.string());
     }
 
     return 0;
