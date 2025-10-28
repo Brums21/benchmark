@@ -3,8 +3,6 @@
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-ES"
 
-TOOL_DIR="${BENCHMARK_DIR}/tools/gmes_linux_64"
-
 mkdir -p ${RESULTS_FOLDER}
 cd ${RESULTS_FOLDER} || exit 1
 
@@ -45,7 +43,7 @@ for SPECIES in "$SPECIES_FOLDER"/*; do
             cp $DNA_FILE input.fa
         fi
 
-        runTimedCommand "${TOOL_DIR}/gmes_petap.pl --sequence input.fa --ES --cores 10" \
+        runTimedCommand "gmes_petap.pl --sequence input.fa --ES --cores 10" \
             "${SPECIES_NAME}_genemark_output.txt" \
             "${SPECIES_NAME}_genemark_time_mem.txt"
 

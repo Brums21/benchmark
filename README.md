@@ -1,72 +1,61 @@
-# benchmark
+# Benchmark
 
-## Script to download tools
+This repository contains the code necessary to compile all tests performed for the benchmark of GeAnno and other gene predictors/genome annotators, including:
+- AUGUSTUS
+- GeMoMa
+- GeneMark-EP+
+- GeneMark-ES
+- GeneMark-ETP
+- SNAP
 
-The file `get_tools.sh` allows to download all tools, except for GeneMark-ES and GeneMark-EP+, which should be downloaded from [here](http://topaz.gatech.edu/GeneMark/license_download.cgi). The option considered for this benchmarking test is `GeneMark-ES/ET/EP+ ver 4.72_lic` for the LINUX 64 OS. Be careful to download both the software and the license key, placing the last one in the same directory as the software folder.
+We provide the code used to download the testing sets, download benchmarking tools and their dependencies, perform the tests made, as well as configurations used, and plotting relevant results.
 
-### Steps to install the GeneMark-ES and GeneMark-EP+ tools:
+## Compatibility
 
-1. Download the software and license key using the command:
+| Element          | Specification                                                 |
+|------------------|---------------------------------------------------------------|
+| CPU              | Intel Xeon E7320 @ 2.13 GHz, 16 cores (4 sockets)             |
+| RAM              | 256 GB                                                        |
+| OS               | Ubuntu 22.04.4 LTS (Jammy Jellyfish), kernel 6.8.0-60-generic |
+| Arch.            | x86_64                                                        |
 
-    ```wget [copied software link]```.
+## Pre-requirements:
 
-2. Unzip the software using the command: 
+- Python3
+- Perl
+- WGET
 
-    ```tar -xvzf gmes_linux_64.tar.gz```
+All remaining dependencies were downloaded and configured by running the  `./setup/install_dependencies.sh` script. 
 
-3. Remove the compressed folder: 
+## Installation
 
-    ```rm gmes_linux_64.tar.gz```
+### Set up environment variable
 
-4. Get the license key, copying the link from the download: 
+Navigate to the path where this README.md file is and perform the following steps:
 
-    ```wget [copied license link]```
-
-5. Unzip the license key: 
-
-    ```gunzip gm_key_64.gz```
-
-6. Place the license key in the home folder: 
-
-    ```cp gm_key ~/.gm_key```
-
-In order to run GeneMark, some constraints had to be solved, namely the Perl modules necessary for its installation. We used the conva environment to solve these issues, and then configured GeneMark to accept the Perl path in the conda environment to run the tests. 
-
-The following commands have been performed for this aspect:
-
-1. Install miniconda:
-
-```wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh```
-
-2. Run the installer (you can then remove the installer using `rm Miniconda3-latest-Linux-x86_64.sh`):
-
-```bash Miniconda3-latest-Linux-x86_64.sh```
-
-and follow the steps to procced with the installation.
-
-3. Configure miniconda path:
-
-```export PATH=$HOME/miniconda3/bin```
-
-4. Reload the shell:
-
-```source ~/.bashrc```
-
-5. Activate conda's base environment:
-
-```eval "$(/root/miniconda3/bin/conda shell.bash hook)"```
-
-6. Initiate conda:
-
-```conda init```
-
-7. Restart the shell:
-
-```source ~/.bashrc```
-
-8. Install the following perl dependencies:
-
+```bash
+echo "export BENCHMARK_DIR=$(pwd)" >> ~/.bashrc
+source ~/.bashrc
 ```
-   cpan YAML Hash::Merge Parallel::ForkManager MCE::Mutex Thread::Queue threads Math::Utils
-```
+
+This variable is used to locate scripts, dependencies, and other necessary configurations. Not having this variable set, most scripts will fail, since they are dependent on it.
+
+### Install all tools and required packages
+
+By default, the `./setup.sh` script should be able to install all missing dependencies, tools, benchmarking species and other necessary data. This script runs all scripts present in the `setup/` directory.
+
+We explain what each script does:
+    - `get_species_info.sh`: download all testing species (used across all tools) and reference species (used by GeMoMa only).
+    - `hints_generator.sh`: download protein evidence sets (used by AUGUSTUS, GeneMark-EP+, and GeneMark-ETP).
+    - `rna_seq_data.sh`: downloads necessary RNA seq data (used by GeneMark-ETP).
+    - `get_tools.sh`: downloads all benchmarked tools and places them in the `tools/` directory.
+    - `install_dependencies.sh`: download and installs all requirements necessary for the downloaded tools to function. 
+
+In order to run the `install_dependencies.sh` script, it is necessary to have all tools installed first (using `get_tools.sh`).
+
+> Note: you need to give permission to the scripts in order to be able to run them with the `chmod +x <script>` command.
+
+## Runing the benchmark
+
+
 

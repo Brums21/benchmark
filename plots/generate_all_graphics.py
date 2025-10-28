@@ -1,21 +1,29 @@
 import argparse
-from pathlib import Path
 import warnings
 import seaborn as sns
 
-from load_save import load_results, load_geanno
+from pathlib import Path
 
-from geanno_plots import plot_geanno_vs_abinitio_for_model, plot_geanno_vs_genemark, \
-                        plot_geanno_vs_tools_mut_rate, plot_ram_time_all_tools_overall_dots_plus_geanno, \
-                        plot_auc_heatmap_stack_geanno_mesc_vs_aug_abinitio
+from modules.load_save import load_results, load_geanno
 
-from ab_initio_plots import plot_model_comparison_RAM_time_consumed, plot_model_comparison_zero_mut_ab_initio, \
-                            plot_mutation_curves_ab_initio, plot_model_comparison_RAM_time_consumed_ab_initio
-        
-from comparison_plots import plot_mutation_curves_ab_vs_evidence_macro_simple, plot_ram_time_all_tools_overall_dots
+from modules.ab_initio_comp import plot_geanno_vs_abinitio_for_model, plot_geanno_vs_genemark
 
-from evidence_plots import plot_model_comparison_RAM_time_consumed_evidence, plot_evidence_zero_mut_collapsed, \
-                            plot_mutation_curves_evidence, plot_hint_effect_curves, plot_evidence_zero_mut_collapsed_hints
+from modules.comparison_tools import export_geanno_models_table_csv
+
+from modules.geanno_plots import export_all_tools_table_csv, export_threshold_curves_and_tripanel, \
+                                export_window_step_by_species_mut0
+
+from modules.hints_comp import plot_evidence_species_by_hints_plus_geanno
+
+from modules.mut_rate import export_fixedpoint_species_model, export_tool_by_mutrate_avg_across_species, \
+                            export_tool_mutation_drop_csv, plot_geanno_vs_tools_mut_rate, \
+                            plot_geanno_vs_tools_mut_rate_per_species
+
+from modules.roc_prc import plot_auc_heatmap_stack_geanno_mesc_vs_aug_abinitio
+
+from modules.time_ram import plot_ram_time_all_tools_by_species_linepairs_plus_geanno, plot_ram_time_all_tools_overall_dots_plus_geanno, \
+                            plot_ram_time_summaries_and_plots
+
 
 try:
     sns.set_style("whitegrid")
@@ -40,37 +48,39 @@ def main():
     args.fig_dir.mkdir(parents=True, exist_ok=True)
     df = load_results(args.csv_dir)
     df_geanno = load_geanno(args.results_geanno)
-
-    ab_initio_path = args.fig_dir / "ab_initio"
-    evidence_path = args.fig_dir / "evidence"
-    comparison_path = args.fig_dir / "comparison"
     geanno_path = args.fig_dir / "geanno"
 
-    ab_initio_path.mkdir(parents=True, exist_ok=True)
-    evidence_path.mkdir(parents=True, exist_ok=True)
-    comparison_path.mkdir(parents=True, exist_ok=True)
     geanno_path.mkdir(parents=True, exist_ok=True)
 
-    plot_model_comparison_zero_mut_ab_initio(df, ab_initio_path, args.dpi)
-    plot_mutation_curves_ab_initio(df, ab_initio_path, args.dpi)
-    plot_model_comparison_RAM_time_consumed_ab_initio(df, ab_initio_path, args.dpi)
+    # GEANNO CONFIGS
+    export_threshold_curves_and_tripanel(df_geanno, out_dir=geanno_path, dpi=args.dpi)
+    export_window_step_by_species_mut0(df_geanno, out_dir=geanno_path)
 
-    plot_evidence_zero_mut_collapsed(df, evidence_path, args.dpi)
-    plot_evidence_zero_mut_collapsed_hints(df, evidence_path, args.dpi)
-    plot_mutation_curves_evidence(df, evidence_path, args.dpi)
-    plot_model_comparison_RAM_time_consumed_evidence(df, evidence_path, args.dpi)
-    plot_hint_effect_curves(df, evidence_path, args.dpi)
-
-    plot_mutation_curves_ab_vs_evidence_macro_simple(df, comparison_path, args.dpi)
-    plot_ram_time_all_tools_overall_dots(df, comparison_path, args.dpi)
-
+    # MODEL TRAINING COMPARISON
     plot_geanno_vs_abinitio_for_model(df, args.results_geanno, model="arabidopsis", out_dir=geanno_path)
     plot_geanno_vs_abinitio_for_model(df, args.results_geanno, model="rice",        out_dir=geanno_path)
     plot_geanno_vs_genemark(df, args.results_geanno, out_dir=geanno_path)
 
-    plot_geanno_vs_tools_mut_rate(df, df_geanno, out_dir=geanno_path, dpi=args.dpi)
-    plot_ram_time_all_tools_overall_dots_plus_geanno(df, df_geanno, out_dir=geanno_path, dpi=args.dpi)
+    # COMPARISON WITH EVIDENCE-BASED HINTS
+    plot_evidence_species_by_hints_plus_geanno(df, df_geanno, out_dir=geanno_path, dpi=args.dpi)
 
+    # COMPARISON ACROSS DIFFERENT SPECIES
+    export_geanno_models_table_csv(df_geanno, out_dir=geanno_path)
+    export_all_tools_table_csv(df, df_geanno, out_dir=geanno_path)
+
+    # MUTATION RATES
+    plot_geanno_vs_tools_mut_rate_per_species(df, df_geanno, out_dir=geanno_path)
+    plot_geanno_vs_tools_mut_rate(df, df_geanno, out_dir=geanno_path, dpi=args.dpi)
+    export_fixedpoint_species_model(df_geanno, out_dir=geanno_path)
+    export_tool_by_mutrate_avg_across_species(df_geanno, out_dir=geanno_path)
+    export_tool_mutation_drop_csv(df, df_geanno, out_dir=geanno_path)
+
+    # TIME AND RAM
+    plot_ram_time_summaries_and_plots(df_geanno, out_dir=geanno_path, dpi=args.dpi)
+    plot_ram_time_all_tools_overall_dots_plus_geanno(df, df_geanno, out_dir=geanno_path, dpi=args.dpi)
+    plot_ram_time_all_tools_by_species_linepairs_plus_geanno(df, df_geanno, out_dir=geanno_path, dpi=args.dpi)
+    
+    # AUC-ROC AU-PRC - DONE
     plot_auc_heatmap_stack_geanno_mesc_vs_aug_abinitio(args.geanno_auc_csv,
         bench_auc_dir=args.csv_dir,
         out_dir=geanno_path,

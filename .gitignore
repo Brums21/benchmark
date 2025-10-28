@@ -30,6 +30,7 @@
 **.swp
 **.csv
 /results_csv_excel/*
+/libs/*
 
 plots/ab_initio/*
 plots/evidence/*

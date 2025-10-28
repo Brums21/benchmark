@@ -91,8 +91,6 @@ for MR in "${MUT_RATES[@]}"; do
         OUT_DIR="$SPEC_DIR/output"
         mkdir -p "$OUT_DIR"
 
-        TIME_MEM_FILE="$OUT_DIR/time_mem.txt"
-
         CMD=(
           "$PYTHON_BIN" "$GEANNO"
           -d "$IN_FA"

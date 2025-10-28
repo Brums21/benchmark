@@ -62,21 +62,16 @@ fi
 echo -e "\n\GeAnno ------------------------------------------------------"
 if [ ! -d "GeAnno" ]; then
     echo "Installing GeAnno..."
-    wget https://github.com/cobilab/GeAnno/archive/refs/heads/main.zip -O GeAnno.zip
-    mkdir GeAnno
-    mv GeAnno.zip GeAnno/
-    cd GeAnno
-    unzip GeAnno.zip
-    rm GeAnno.zip
+    git clone git@github.com:cobilab/GeAnno.git ${BENCHMARK_DIR}/tools/GeAnno
+    cd ${BENCHMARK_DIR}/tools/GeAnno
 
-    # setup
     echo "export PLANT_DIR=$(pwd)" >> ~/.bashrc
     source ~/.bashrc
 
     chmod +x ./setup.sh
     ./setup.sh -t
 
-    cd ..
+    pip install -r requirements.txt
 else 
     echo "GeAnno is already installed. Skipping..."
 fi 

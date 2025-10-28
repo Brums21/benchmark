@@ -39,7 +39,7 @@ runProthint() {
         else
 
             echo "Prothint file not found in Genemark results. Running ProtHint for ${SPECIES_NAME} with hints: $HINTS_TYPE"
-            runTimedCommand "${BENCHMARK_DIR}/tools/gmes_linux_64/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
+            runTimedCommand "${BENCHMARK_DIR}/tools/GeneMark-ETP/bin/gmes/ProtHint/bin/prothint.py $DNA_FILE $HINTS_FILE" \
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_output.txt" "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
         fi
 
@@ -56,7 +56,7 @@ runAUGUSTUS() {
     local SPECIES_NAME="$2"
     local DNA_FILE="$3"
     local AUGUSTUS_MODEL="$4"
-    local MUTATION_RATE="$5" # original, 0.01, 0.03, 0.07
+    local MUTATION_RATE="$5" # original, 0.01, 0.04, 0.07
     local HINTS_OPTION=""
 
     mkdir -p "$MODE"
@@ -76,7 +76,7 @@ runAUGUSTUS() {
 
     if [ "$MODE" != "abinitio" ]; then
         if runProthint "$MODE" "$SPECIES_NAME" "input.fa" "$MUTATION_RATE"; then
-            HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=${BENCHMARK_DIR}/config/extrinsic.cfg"
+            HINTS_OPTION="--hintsfile=prothint_augustus.gff --extrinsicCfgFile=${BENCHMARK_DIR}/config/augustus/extrinsic.cfg"
         else
             cd ..
             return

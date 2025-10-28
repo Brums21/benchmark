@@ -3,6 +3,7 @@
 TEMP_DIR=${BENCHMARK_DIR}/temp
 HINTS_FOLDER=${BENCHMARK_DIR}/species/hints
 
+mkdir -p ${HINTS_FOLDER}
 mkdir -p ${TEMP_DIR}
 cd ${TEMP_DIR} || exit 1
 

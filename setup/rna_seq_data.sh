@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SPECIES_DIR="${BENCHMARK_DIR}/species/benchmark_species"
+HINTS_DIR="${BENCHMARK_DIR}/species/hints"
 
 declare -A RUN_IDS_MAP=(
     ["arabidopsis_thaliana"]="SRR26130646 SRR26130647 SRR13181660"
@@ -9,14 +10,14 @@ declare -A RUN_IDS_MAP=(
     ["oryza_sativa"]="SRR12147606 SRR12147607 SRR12147608"
 )
 
-TEMP_FASTA_DIR=${BENCHMARK_DIR}/temp_data
+TEMP_FASTA_DIR=${BENCHMARK_DIR}/data
 
 function generateConfigFile() {
     local HINTS_TYPE="$1"
     local SPECIES="$2"
     shift 2
     local RUN_IDS=("$@")
-    local HINTS_FILE="${SPECIES_DIR}/${SPECIES}/${SPECIES}_${HINTS_TYPE}.fa"
+    local HINTS_FILE="${HINTS_DIR}/${SPECIES}_${HINTS_TYPE}.fa"
 
     if [ -f "$HINTS_FILE" ]; then
         local PROT_PATH=$(realpath "$HINTS_FILE")

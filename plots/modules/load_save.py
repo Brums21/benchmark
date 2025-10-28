@@ -2,45 +2,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-SPECIES_PRETTY = {
-    "arabidopsis_thaliana": "A. thaliana",
-    "oryza_sativa": "O. sativa",
-    "gossypium_raimondii": "G. raimondii",
-    "manihot_esculenta": "M. esculenta",
-}
-
-SPECIES_SIZE = {
-    "arabidopsis_thaliana": 30210,
-    "oryza_sativa":         42962,
-    "gossypium_raimondii":  55469,
-    "manihot_esculenta":    42691,
-}
-
-TOOL_MAP = {
-    "a_thaliana_model": "A. thaliana model",
-    "a_thaliana_model_PCA": "A. thaliana model (PCA)",
-    "o_sativa_model": "O. sativa model",
-    "o_sativa_model_PCA": "O. sativa model (PCA)",
-    "genemark_model": "GeneMark model",
-    "genemark_model_PCA": "GeneMark model (PCA)",
-    "m_esculenta_model_PCA": "M. esculenta model (PCA)",
-}
-
-TOOL_MAPPING = {
-    "genemarkes":   "GeneMark-ES",
-    "genemarkep":   "GeneMark-EP+",
-    "genemarketp":  "GeneMark-ETP",
-    "gemoma":       "GeMoMa",
-    "augustus":     "AUGUSTUS",
-    "snap":         "SNAP",
-}
-
-METRIC_LABELS = {
-    "precision": "Precision",
-    "recall":    "Recall",
-    "f1":        "F1-score",
-}
-
+from modules.common import SPECIES_PRETTY, TOOL_MAP
 
 def parse_filename(fname: str):
     stem = Path(fname).stem
@@ -132,10 +94,8 @@ def load_results(csv_dir: Path) -> pd.DataFrame:
         for k, v in meta.items():
             df[k] = v
 
-        # = sensibility
         df["precision"] = df["specificity"]
 
-        # = sensitivity
         df["recall"] = df["sensitivity"]
         df["f1"] = 2 * df.specificity * df.sensitivity / (df.specificity + df.sensitivity).replace(0, np.nan)
         df.fillna(0, inplace=True)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEMP_FASTA_DIR="${BENCHMARK_DIR}/temp_data"
+TEMP_FASTA_DIR="${BENCHMARK_DIR}/data"
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-ETP"
 

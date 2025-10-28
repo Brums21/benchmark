@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Notas: para correr GeneMark-EP+, a ferramenta ProtHint Ã© necessÃ¡ria, e vem incluida na pasta do gmes_linux_64.
-# O script hints_generator.sh gera sequÃªncias de proteÃ­nas para diferentes nÃ­veis taxonÃ´micos (gÃªnero, ordem, etc.).
-# Mais informaÃ§Ãµes podem ser encontradas nos comentÃ¡rios do script.
-
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 HINTS_FOLDER="${BENCHMARK_DIR}/species/hints"
 RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-EPp"
@@ -44,7 +40,7 @@ runGeneMarkEPp() {
         fi
 
         echo "Running ProtHint for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "${BENCHMARK_DIR}/tools/gmes_linux_64/ProtHint/bin/prothint.py \
+        runTimedCommand "${BENCHMARK_DIR}/tools/GeneMark-ETP/bin/gmes/ProtHint/bin/prothint.py \
             --geneMarkGtf ${BENCHMARK_DIR}/results/tools/GeneMark-ES/${SPECIES_NAME}/mr_${MUTATION_RATE}/genemark.gtf \
             ../input.fa \
             ${HINTS_FILE}" \
@@ -52,8 +48,7 @@ runGeneMarkEPp() {
             "${SPECIES_NAME}_${HINTS_TYPE}_prothint_time_mem.txt"
 
         echo "Running GeneMark-EP+ for $SPECIES_NAME with $HINTS_TYPE hints..."
-        runTimedCommand "${BENCHMARK_DIR}/tools/gmes_linux_64/gmes_petap.pl \
-            --EP prothint.gff \
+        runTimedCommand "gmes_petap.pl --EP prothint.gff \
             --evidence evidence.gff \
             --seq ../input.fa \
             --cores 10" \
