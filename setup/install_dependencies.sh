@@ -11,7 +11,7 @@ echo 'export PATH=${BENCHMARK_DIR}/libs/mmseqs/bin/:$PATH' >> ~/.bashrc
 #AUGUSTUS
 
 # SQLite, GSL, LPsolve, zlib, BamTools, samtools
-packages=(zlib1g-dev libsqlite3-dev libgsl-dev libsuitesparse-dev liblpsolve55-dev libbamtools-dev samtools)
+packages=(zlib1g-dev libsqlite3-dev libgsl-dev liblpsolve55-dev libbamtools-dev samtools)
 
 for package in ${packages[@]}; do
 
@@ -59,14 +59,19 @@ dpkg-deb -x libmysqlclient-dev_8.0.23-0ubuntu0.20.04.1_amd64.deb ${BENCHMARK_DIR
 ## SuiteSparse
 git clone https://github.com/DrTimothyAldenDavis/SuiteSparse.git ${BENCHMARK_DIR}/libs/suitesparse
 cd ${BENCHMARK_DIR}/libs/suitesparse/SuiteSparse_config
+make install INSTALL=${BENCHMARK_DIR}/libs/suitesparse/suitesparse_install
+cd ${BENCHMARK_DIR}/libs/suitesparse/COLAMD
+make install INSTALL=${BENCHMARK_DIR}/libs/suitesparse/suitesparse_install
 
-cmake -S . -B build \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-        -DCMAKE_INSTALL_PREFIX=${BENCHMARK_DIR}/libs/suitesparse/suitesparse_install
 
-cmake --build build -j"$(nproc)"
-cmake --install build
+wget https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v5.4.0.zip -O ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0.zip
+unzip ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0.zip -d ${BENCHMARK_DIR}/libs/
+rm ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0.zip
+
+cd ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0
+make install INSTALL=${BENCHMARK_DIR}/libs/suitesparse
+cd ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0/COLAMD
+make install INSTALL=${BENCHMARK_DIR}/libs/suitesparse
 
 # SAMtools/HTSlib
 
@@ -149,10 +154,14 @@ echo 'export PATH=${BENCHMARK_DIR}/tools/SNAP-master:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
 # Install GeNeMark-ETP
-cpan App::cpanminus
-
 echo 'export PERL5LIB="$HOME/perl5/lib/perl5${PERL5LIB+:$PERL5LIB}"' >> ~/.bashrc
 echo 'export PATH="$HOME/perl5/bin:$PATH"' >> ~/.bashrc
+
+echo 'export PERL_MM_OPT="INSTALL_BASE=$HOME/perl5"' >> ~/.bashrc
+echo 'export PERL_MM_OPT="INSTALL_BASE=$HOME/perl5"' >> ~/.bashrc
+
+cpan App::cpanminus
+
 source ~/.bashrc
 
 cpanm Cwd
@@ -223,7 +232,7 @@ command -v gt >/dev/null 2>&1 || {
 command -v SNAP_ExonEtermEinitEsngl_gff_to_gff3.pl >/dev/null 2>&1 || { 
     echo "SNAP to GFF3 converter is required but not installed. Installing..."  
 
-    git clone git@github.com:EVidenceModeler/EVidenceModeler.git ${BENCHMARK_DIR}/libs/EVM
+    git clone https://github.com/EVidenceModeler/EVidenceModeler.git ${BENCHMARK_DIR}/libs/EVM
     echo 'export PATH=${BENCHMARK_DIR}/libs/EVM/EvmUtils/misc/:$PATH' >> ~/.bashrc
 
     source ~/.bashrc

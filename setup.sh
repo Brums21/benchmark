@@ -40,12 +40,12 @@ command -v make >/dev/null 2>&1 || {
 command -v cmake >/dev/null 2>&1 || { 
     echo "cmake is required but not installed. Installing..."
 
-    apt-get download cmake && mv cmake_*.deb cmake.deb
+    cd ${BENCHMARK_DIR}/libs/
+    wget https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz
+    tar -xzf cmake-3.28.3-linux-x86_64.tar.gz
 
-    mkdir -p ${BENCHMARK_DIR}/libs/cmake/
-    dpkg -x cmake.deb ${BENCHMARK_DIR}/libs/cmake/
-    rm cmake.deb
-    echo 'export PATH=${BENCHMARK_DIR}/libs/cmake/usr/bin/:$PATH' >> ~/.bashrc
+    echo 'export PATH=$BENCHMARK_DIR/libs/cmake-3.28.3-linux-x86_64/bin:$PATH' >> ~/.bashrc
+
 }
 
 source ~/.bashrc
