@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -z "$BENCHMARK_DIR" ]; then
+    echo "Error: BENCHMARK_DIR is not set. Please source the env.sh file first."
+    exit 1
+fi
+
 SPECIES_DIR="${BENCHMARK_DIR}/species/benchmark_species"
 HINTS_DIR="${BENCHMARK_DIR}/species/hints"
 

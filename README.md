@@ -21,9 +21,9 @@ We provide the code used to download the testing sets, download benchmarking too
 
 ## Pre-requirements:
 
-- Python3
-- Perl
-- WGET
+- Python3 (with pip)
+- g++ compiler
+- Java (version 11)
 
 All remaining dependencies were downloaded and configured by running the  `./setup/install_dependencies.sh` script. 
 
@@ -34,8 +34,8 @@ All remaining dependencies were downloaded and configured by running the  `./set
 Navigate to the path where this README.md file is and perform the following steps:
 
 ```bash
-echo "export BENCHMARK_DIR=$(pwd)" >> ~/.bashrc
-source ~/.bashrc
+echo "export BENCHMARK_DIR=$(pwd)" >> env.sh
+source env.sh
 ```
 
 This variable is used to locate scripts, dependencies, and other necessary configurations. Not having this variable set, most scripts will fail, since they are dependent on it.

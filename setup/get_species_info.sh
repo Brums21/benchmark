@@ -1,6 +1,14 @@
 #!/bin/bash
 # This script downloads the DNA sequences and annotation from the first chromossome of 4 species
 
+if [ -z "$BENCHMARK_DIR" ]; then
+    echo "Error: BENCHMARK_DIR is not set. Please source the env.sh file first."
+    exit 1
+fi
+
+ENV_FILE="${BENCHMARK_DIR}/env.sh"
+source ${ENV_FILE}
+
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 REFERENCES_FOLDER="${BENCHMARK_DIR}/species/reference_species"
 

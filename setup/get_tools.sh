@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ -z "$BENCHMARK_DIR" ]; then
+    echo "Error: BENCHMARK_DIR is not set. Please source the env.sh file first."
+    exit 1
+fi
+
+ENV_FILE="${BENCHMARK_DIR}/env.sh"
+source ${ENV_FILE}
+
 mkdir -p ${BENCHMARK_DIR}/tools
 cd ${BENCHMARK_DIR}/tools || exit 1
 
@@ -23,11 +31,6 @@ if [ ! -d "Augustus-3.5.0" ]; then
     wget https://github.com/Gaius-Augustus/Augustus/archive/refs/tags/v3.5.0.tar.gz -O Augustus-3.5.0.tar.gz
     tar -xvzf Augustus-3.5.0.tar.gz
     rm Augustus-3.5.0.tar.gz
-
-    # make augustus
-    cd Augustus-3.5.0
-    make augustus
-    cd ..
 else
     echo "AUGUSTUS is already installed. Skipping..."
 fi
@@ -62,7 +65,7 @@ fi
 echo -e "\n\GeAnno ------------------------------------------------------"
 if [ ! -d "GeAnno" ]; then
     echo "Installing GeAnno..."
-    git clone git@github.com:cobilab/GeAnno.git ${BENCHMARK_DIR}/tools/GeAnno
+    git clone https://github.com/cobilab/GeAnno.git ${BENCHMARK_DIR}/tools/GeAnno
     cd ${BENCHMARK_DIR}/tools/GeAnno
 
     echo "export PLANT_DIR=$(pwd)" >> ~/.bashrc

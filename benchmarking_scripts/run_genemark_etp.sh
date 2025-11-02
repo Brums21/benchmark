@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -z "$BENCHMARK_DIR" ]; then
+    echo "Error: BENCHMARK_DIR is not set. Please source the env.sh file first."
+    exit 1
+fi
+
 TEMP_FASTA_DIR="${BENCHMARK_DIR}/data"
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
 RESULTS_FOLDER="${BENCHMARK_DIR}/results/tools/GeneMark-ETP"
