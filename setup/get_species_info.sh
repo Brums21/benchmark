@@ -14,7 +14,7 @@ REFERENCES_FOLDER="${BENCHMARK_DIR}/species/reference_species"
 
 
 echo "Making species folder and entering it..."
-mkdir ${SPECIES_FOLDER}
+mkdir -p ${SPECIES_FOLDER}
 cd ${SPECIES_FOLDER}
 
 # well annotated species

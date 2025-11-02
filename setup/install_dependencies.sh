@@ -295,9 +295,9 @@ else
     update_env_var "PERL5LIB" "${BENCHMARK_DIR}/libs/perl5/lib/perl5" "${ENV_FILE}"
     update_env_var "PERL_MM_OPT" '"INSTALL_BASE=${BENCHMARK_DIR}/libs/perl5"' "${ENV_FILE}"
 
-    cpan App::cpanminus
-
     source ${ENV_FILE}
+
+    cpan App::cpanminus    
 
     cpanm --local-lib=${BENCHMARK_DIR}/libs/perl5 Cwd
     cpanm --local-lib=${BENCHMARK_DIR}/libs/perl5 Data::Dumper
