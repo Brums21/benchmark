@@ -334,7 +334,9 @@ command -v agat_convert_sp_gxf2gxf >/dev/null 2>&1 || {
     git clone https://github.com/NBISweden/AGAT.git ${BENCHMARK_DIR}/libs/AGAT
     cd ${BENCHMARK_DIR}/libs/AGAT
 
-    cpanm install BioPerl Clone Graph::Directed\
+    cpan install Bio::Perl
+
+    cpanm --local-lib=${BENCHMARK_DIR}/libs/perl5 install Clone Graph::Directed \
                 LWP::UserAgent Carp Sort::Naturally \
                 File::Share File::ShareDir::Install \
                 Moose YAML LWP::Protocol::https \
@@ -345,7 +347,7 @@ command -v agat_convert_sp_gxf2gxf >/dev/null 2>&1 || {
     make test
     make install
     
-    update_env_path "AGAT/bin/" "libs/perl5/bin/" "${ENV_FILE}"
+    update_env_path "AGAT/bin/" "libs/AGAT/bin/" "${ENV_FILE}"
     source ${ENV_FILE}
 }
 
@@ -369,6 +371,16 @@ command -v SNAP_ExonEtermEinitEsngl_gff_to_gff3.pl >/dev/null 2>&1 || {
 
     git clone https://github.com/EVidenceModeler/EVidenceModeler.git ${BENCHMARK_DIR}/libs/EVM
     update_env_path "EVM/EvmUtils/misc/" "libs/EVM/EvmUtils/misc/" "${ENV_FILE}"
+
+    source ${ENV_FILE}
+}
+
+# gto_fasta_mutate
+command -v gto_fasta_mutate >/dev/null 2>&1 || { 
+    echo "gto_fasta_mutate is required but not installed. Installing..."  
+
+    git clone https://github.com/cobilab/gto.git ${BENCHMARK_DIR}/libs/gto
+    update_env_path "gto/bin" "libs/gto/bin" "${ENV_FILE}"
 
     source ${ENV_FILE}
 }

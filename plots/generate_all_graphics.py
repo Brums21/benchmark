@@ -35,14 +35,12 @@ except ImportError:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("csv_dir", type=Path)
-    ap.add_argument("fig_dir", type=Path)
+    ap.add_argument("--csv_dir", type=Path, required=True)
+    ap.add_argument("--fig_dir", type=Path, required=True)
+    ap.add_argument("--results_geanno", type=Path, required=True, help="Path to GeAnno's results")
+    ap.add_argument("--geanno_auc_csv", type=Path, required=True, help="CSV with GeAnno AUCs (species,model,mutation_rate,window,step,threshold,auc_roc,auc_prc)")
     ap.add_argument("--dpi", type=int, default=300)
-    ap.add_argument("--results_geanno", type=Path, required=True,
-                    help="Path to GeAnno's results")
-    ap.add_argument("--geanno_auc_csv", type=Path, required=True,
-                help="CSV with GeAnno AUCs (species,model,mutation_rate,window,step,threshold,auc_roc,auc_prc)")
-
+    
     args = ap.parse_args()
 
     args.fig_dir.mkdir(parents=True, exist_ok=True)

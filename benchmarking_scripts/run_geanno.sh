@@ -6,6 +6,7 @@ if [ -z "$BENCHMARK_DIR" ]; then
     exit 1
 fi
 
+source "${BENCHMARK_DIR}/tools/GeAnno/env_geanno.sh"
 source ${PLANT_DIR}/.venv/bin/activate
 
 SPECIES_FOLDER="${BENCHMARK_DIR}/species/benchmark_species"
@@ -30,8 +31,9 @@ MUT_RATES=("0" "0.01" "0.04" "0.07")
 MAX_JOBS=4
 
 PYTHON_BIN="python3"
-GEANNO="src/geanno.py"
-RESULTS_ROOT="results/tools/GeAnno"
+GEANNO="${BENCHMARK_DIR}/tools/GeAnno/src/geanno.py"
+GEANNO_MODELS="${BENCHMARK_DIR}/tools/GeAnno/models"
+RESULTS_ROOT="${BENCHMARK_DIR}/results/tools/GeAnno"
 
 wait_for_slot() {
   while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do
@@ -49,6 +51,7 @@ for MR in "${MUT_RATES[@]}"; do
   for MODEL_NAME in "${!MODELS_LIST[@]}"; do
 
     MODEL="${MODELS_LIST[$MODEL_NAME]}"
+    MODEL_PATH="$GEANNO_MODELS/$MODEL"
     MODEL_DIR="$MR_DIR/$MODEL_NAME"
 
     mkdir -p "$MODEL_DIR"
@@ -64,14 +67,15 @@ for MR in "${MUT_RATES[@]}"; do
 
             OUT_DIR="$SPEC_DIR/output"
 
-            mkdir -p "$OUT_DIR" "$FIG_DIR"
+            mkdir -p "$OUT_DIR"
 
             TIME_MEM_FILE="$SPEC_DIR/time_mem/time_${W}_${S}.txt"
+            mkdir -p $SPEC_DIR/time_mem/
 
             CMD=(
               "$PYTHON_BIN" "$GEANNO"
               -d "${SPECIES_FOLDER}/${SPECIES}/${SPECIES}_dna.fa"
-              -m "$MODEL"
+              -m "$MODEL_PATH/model_undersampling_XGBoost_50.pkl"
               -w "$W"
               -s "$S"
               -t "$THRESHOLDS"

@@ -222,7 +222,7 @@ static inline bool is_gff_like(const std::filesystem::path& p) {
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0]
-                  << " <reference.gff[3]> <predictions file or folder> [--output_folder path] [--threads N]\n";
+                  << " <reference.gff[3]> <predictions file or folder> [--output_folder path] [--threads N] [--print-auc] \n";
         return 1;
     }
 
@@ -232,12 +232,15 @@ int main(int argc, char* argv[]) {
     std::string pred_input = argv[2];
     unsigned threads = std::thread::hardware_concurrency();
     std::string output_folder;
+    bool print_auc = false;
 
     for (int i = 3; i < argc; ++i) {
         if (std::strcmp(argv[i], "--threads") == 0 && i + 1 < argc) {
             threads = static_cast<unsigned>(std::stoul(argv[++i]));
         } else if (std::strcmp(argv[i], "--output_folder") == 0 && i + 1 < argc) {
             output_folder = argv[++i];
+        } else if (std::strcmp(argv[i], "--print_auc") == 0) {
+            print_auc = true;
         } else {
             std::cerr << "Unknown argument: " << argv[i] << '\n';
             return 1;
@@ -287,11 +290,14 @@ int main(int argc, char* argv[]) {
             }
 
             write_gene_nucleotide_csv(refs, preds, csv_file);
-            evaluate_auc(refs, preds, auc_base.string());
+
+            if (print_auc) {
+                evaluate_auc(refs, preds, auc_base.string());
+            }
         }
     } else {
         if (!is_gff_like(pred_path)) {
-            std::cerr << "Predictions must be GFF/GFF3 (no .txt): " << pred_input << "\n";
+            std::cerr << "Predictions must be GFF/GFF3: " << pred_input << "\n";
             return 1;
         }
 
@@ -314,7 +320,10 @@ int main(int argc, char* argv[]) {
         }
 
         write_gene_nucleotide_csv(refs, preds, csv_file);
-        evaluate_auc(refs, preds, auc_base.string());
+
+        if (print_auc) {
+            evaluate_auc(refs, preds, auc_base.string());
+        }
     }
 
     return 0;

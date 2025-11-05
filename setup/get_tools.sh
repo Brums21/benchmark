@@ -68,8 +68,8 @@ if [ ! -d "GeAnno" ]; then
     git clone https://github.com/cobilab/GeAnno.git ${BENCHMARK_DIR}/tools/GeAnno
     cd ${BENCHMARK_DIR}/tools/GeAnno
 
-    echo "export PLANT_DIR=$(pwd)" >> ~/.bashrc
-    source ~/.bashrc
+    echo "export PLANT_DIR=$(pwd)" >> env.sh
+    source env.sh
 
     chmod +x ./setup.sh
     ./setup.sh -t

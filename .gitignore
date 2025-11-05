@@ -36,6 +36,11 @@ plots/ab_initio/*
 plots/evidence/*
 plots/comparison/*
 plots/geanno/*
+plots/.venv/*
+plots/figs/*
+
+**/__pycache__/*
+env.sh
 
 plots/__pycache__/*
 
