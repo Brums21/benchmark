@@ -7,6 +7,7 @@ This repository contains all the code required to reproduce the benchmarking exp
 - GeneMark-ES
 - GeneMark-ETP
 - SNAP
+
 The repository provides scripts for downloading benchmark datasets and tools, installing dependencies, running the complete benchmarking pipeline, and compiling or visualising the results.
 
 ## 
