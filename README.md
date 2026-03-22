@@ -34,8 +34,9 @@ The benchmark was also tested under Windows Subsystem for Linux (WSL) using the 
 Before running the setup, ensure that the following packages are available:
 
 - Python3 (with pip)
-- g++ compiler
+- g++ and gcc compilers
 - Java (version 11)
+- Augustus
 
 All other dependencies (Perl modules, C/C++ libraries, binaries, etc.) are automatically downloaded and configured by running:
 
@@ -46,6 +47,17 @@ All other dependencies (Perl modules, C/C++ libraries, binaries, etc.) are autom
 >**Note**: No `sudo` privileges are required. All dependencies are installed locally within `${BENCHMARK_DIR}/libs/`.
 
 ## Installation
+
+### Pre-requirements installation
+
+As mentioned above, there are some packages that are required before executing the other scripts. If you have sudo priviledges, you can install them using the following commands:
+
+```bash
+sudo apt update
+sudo apt install \
+   augustus augustus-data augustus-doc \
+   python3.12-venv emboss gcc g++ 
+```
 
 ### Set the benchmark environment variable
 

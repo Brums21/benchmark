@@ -37,6 +37,30 @@ update_env_var() {
     fi
 }
 
+command -v python3 >/dev/null 2>&1 || { 
+    echo "Python3 is required but not installed. Please install it first."
+    echo "You can refer to: https://www.python.org/downloads/source/"
+    exit 1
+}
+
+command -v pip >/dev/null 2>&1 || { 
+    echo "pip is required but not installed. Please install it first."
+    echo "You can refer to: https://pip.pypa.io/en/stable/installation/"
+    exit 1
+}
+
+command -v getorf >/dev/null 2>&1 || { 
+    echo "emboss is required but not installed. You can install it with: "  
+    echo "sudo apt-get install emboss"
+    exit 1
+}
+
+command -v gcc >/dev/null 2>&1 || command -v g++ >/dev/null 2>&1 || { 
+    echo "gcc and g++ are required but not installed. You can install them with: "  
+    echo "sudo apt-get install build-essential"
+    exit 1
+}
+
 command -v gzip >/dev/null 2>&1 || { 
     echo "Gzip is required but not installed. Installing..."
 
@@ -86,192 +110,6 @@ tar xvfz ${BENCHMARK_DIR}/libs/mmseqs-linux-sse2.tar.gz -C ${BENCHMARK_DIR}/libs
 rm ${BENCHMARK_DIR}/libs/mmseqs-linux-sse2.tar.gz
 update_env_path "mmseqs/bin/" "libs/mmseqs/bin/" "${ENV_FILE}"
 
-#AUGUSTUS
-
-# SQLite, GSL, LPsolve, BamTools, samtools
-packages=(libsqlite3-dev libgsl-dev liblpsolve55-dev libbamtools-dev samtools)
-
-for package in ${packages[@]}; do
-
-    command -v $package >/dev/null 2>&1 || { 
-        echo "$package is required but not installed. Installing..."
-
-        apt-get download $package
-        deb_file=$(ls ${package}_*.deb | head -n1)
-        dpkg -x "$deb_file" "${BENCHMARK_DIR}/libs/${package}/"
-        rm -f "$deb_file"
-
-    }
-done
-
-#Zlib
-mkdir -p ${BENCHMARK_DIR}/libs/zlib/zlib_build
-cd ${BENCHMARK_DIR}/libs/zlib/zlib_build
-wget -O zlib-1.2.11.tar.gz https://zlib.net/fossils/zlib-1.2.11.tar.gz
-tar xzf zlib-1.2.11.tar.gz
-cd ${BENCHMARK_DIR}/libs/zlib/zlib_build/zlib-1.2.11
-./configure --prefix=${BENCHMARK_DIR}/libs/zlib/zlib_install
-make
-make install
-
-if grep -q "^export ZLIB_INCLUDE=" "${ENV_FILE}" 2>/dev/null; then
-    sed -i "s|^export ZLIB_INCLUDE=.*|export ZLIB_INCLUDE=\${BENCHMARK_DIR}/libs/zlib/zlib_install/include|" "${ENV_FILE}"
-else
-    echo 'export ZLIB_INCLUDE=${BENCHMARK_DIR}/libs/zlib/zlib_install/include' >> "${ENV_FILE}"
-fi
-
-if grep -q "^export ZLIB_LIBRARY_PATH=" "${ENV_FILE}" 2>/dev/null; then
-    sed -i "s|^export ZLIB_LIBRARY_PATH=.*|export ZLIB_LIBRARY_PATH=\${BENCHMARK_DIR}/libs/zlib/zlib_install/lib|" "${ENV_FILE}"
-else
-    echo 'export ZLIB_LIBRARY_PATH=${BENCHMARK_DIR}/libs/zlib/zlib_install/lib' >> "${ENV_FILE}"
-fi
-
-
-source ${ENV_FILE}
-
-# Boost
-mkdir -p ${BENCHMARK_DIR}/libs/boost/boost_build
-cd ${BENCHMARK_DIR}/libs/boost/boost_build
-wget -O boost_1_76_0.tar.gz https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.gz
-tar xzf boost_1_76_0.tar.gz
-cd  ${BENCHMARK_DIR}/libs/boost/boost_build/boost_1_76_0
-./bootstrap.sh --prefix=${BENCHMARK_DIR}/libs/boost/boost_install --with-libraries=all
-./b2 install --prefix=${BENCHMARK_DIR}/libs/boost/boost_install
-
-
-# MySQL
-mkdir ${BENCHMARK_DIR}/libs/mysql
-cd ${BENCHMARK_DIR}/libs/mysql
-
-wget        libmysql++3v5_3.2.5-1build1_amd64.deb http://de.archive.ubuntu.com/ubuntu/pool/universe/m/mysql++/libmysql++3v5_3.2.5-1build1_amd64.deb
-dpkg-deb -x libmysql++3v5_3.2.5-1build1_amd64.deb ${BENCHMARK_DIR}/libs/mysql/mysql_install
-
-wget        libmysql++-dev_3.2.5-1build1_amd64.deb http://de.archive.ubuntu.com/ubuntu/pool/universe/m/mysql++/libmysql++-dev_3.2.5-1build1_amd64.deb
-dpkg-deb -x libmysql++-dev_3.2.5-1build1_amd64.deb ${BENCHMARK_DIR}/libs/mysql/mysql_install
-
-wget        libmysqlclient21_8.0.23-0ubuntu0.20.04.1_amd64.deb http://security.ubuntu.com/ubuntu/pool/main/m/mysql-8.0/libmysqlclient21_8.0.23-0ubuntu0.20.04.1_amd64.deb
-dpkg-deb -x libmysqlclient21_8.0.23-0ubuntu0.20.04.1_amd64.deb ${BENCHMARK_DIR}/libs/mysql/mysql_install
-
-wget        libmysqlclient-dev_8.0.23-0ubuntu0.20.04.1_amd64.deb http://security.ubuntu.com/ubuntu/pool/main/m/mysql-8.0/libmysqlclient-dev_8.0.23-0ubuntu0.20.04.1_amd64.deb
-dpkg-deb -x libmysqlclient-dev_8.0.23-0ubuntu0.20.04.1_amd64.deb ${BENCHMARK_DIR}/libs/mysql/mysql_install
-
-## SuiteSparse
-
-if [ -f "${BENCHMARK_DIR}/libs/suitesparse/lib/libcolamd.so" ] && [ -f "${BENCHMARK_DIR}/libs/suitesparse/include/colamd.h.so" ]; then
-    echo "SuiteSparse already installed. Skipping..."
-else
-    wget https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/refs/tags/v5.4.0.zip -O ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0.zip
-    unzip ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0.zip -d ${BENCHMARK_DIR}/libs/
-    rm ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0.zip
-
-    cd ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0
-    make install INSTALL=${BENCHMARK_DIR}/libs/suitesparse
-    cd ${BENCHMARK_DIR}/libs/SuiteSparse-5.4.0/COLAMD
-    make install INSTALL=${BENCHMARK_DIR}/libs/suitesparse
-fi
-
-# SAMtools/HTSlib
-
-# Para SAMTOOLS, adidionar ao PATH
-update_env_path "samtools/usr/bin/" "libs/samtools/usr/bin/" "${ENV_FILE}"
-source ${ENV_FILE}
-
-if [ -f "${BENCHMARK_DIR}/libs/htslib/htslib_install/include/htslib" ]; then
-    echo "HTSlib already installed. Skipping..."
-else
-    mkdir -p ${BENCHMARK_DIR}/libs/htslib/htslib_build
-    cd ${BENCHMARK_DIR}/libs/htslib/htslib_build
-    wget -O "htslib.tar.bz2" "https://github.com/samtools/htslib/releases/download/1.22.1/htslib-1.22.1.tar.bz2"
-
-    tar xjf htslib.tar.bz2 
-    cd htslib-1.22.1
-
-    ./configure --prefix=${BENCHMARK_DIR}/libs/htslib/htslib_install \
-        CPPFLAGS=-I/${BENCHMARK_DIR}/libs/zlib/zlib_install/include \
-        LDFLAGS=-L/${BENCHMARK_DIR}/libs/zlib/zlib_install/lib \
-        --disable-bz2 \
-        --disable-lzma
-    make -j"$(nproc)" 
-    make install
-
-fi 
-
-if [ -f "${BENCHMARK_DIR}/libs/htslib/htslib_install/include/htslib" ]; then
-    echo "HTSlib already installed. Skipping..."
-else
-
-    mkdir -p ${BENCHMARK_DIR}/libs/hdf5/hdf5_build
-    cd ${BENCHMARK_DIR}/libs/hdf5/hdf5_build
-    wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.1/src/hdf5-1.10.1.tar.gz
-    tar xzf hdf5-1.10.1.tar.gz
-    cd ${BENCHMARK_DIR}/libs/hdf5/hdf5_build/hdf5-1.10.1
-    ./configure --enable-cxx --prefix=${BENCHMARK_DIR}/libs/hdf5/hdf5_install \
-        --with-zlib="${BENCHMARK_DIR}/libs/zlib/zlib_install/include,${BENCHMARK_DIR}/libs/zlib/zlib_install/lib"
-    make
-    make install
-
-    update_env_path "hdf5/hdf5_install/bin" "libs/hdf5/hdf5_install/bin" "${ENV_FILE}"
-fi
-
-# install sonLib
-if [ -d "${BENCHMARK_DIR}/libs/sonLib/bin" ]; then
-    echo "sonLib already installed. Skipping..."
-else
-    git clone https://github.com/benedictpaten/sonLib.git ${BENCHMARK_DIR}/libs/sonLib
-    cd ${BENCHMARK_DIR}/libs/sonLib
-    export CPPFLAGS="-I/${BENCHMARK_DIR}/libs/zlib/zlib_install/include -L/${BENCHMARK_DIR}/libs/zlib/zlib_install/lib"
-    make
-    unset CPPFLAGS
-
-    update_env_path "sonLib/bin/" "libs/sonLib/bin/" "${ENV_FILE}"
-fi
-
-# install hal
-if [ -d "${BENCHMARK_DIR}/libs/hal/bin" ]; then
-    echo "hal already installed. Skipping..."
-else
-    git clone https://github.com/ComparativeGenomicsToolkit/hal.git ${BENCHMARK_DIR}/libs/hal
-    cd ${BENCHMARK_DIR}/libs/hal
-    export RANLIB=ranlib
-    make
-
-    update_env_path "hdf5/hdf5_install/bin" "libs/hdf5/hdf5_install/bin" "${ENV_FILE}"
-fi
-
-# SeqLib
-if [ -d "${BENCHMARK_DIR}/libs/SeqLib/build/bin" ]; then
-    echo "SeqLib already installed. Skipping..."
-else
-    wget https://github.com/walaj/SeqLib/archive/refs/tags/1.2.0.zip -O ${BENCHMARK_DIR}/libs/SeqLib.zip
-    unzip ${BENCHMARK_DIR}/libs/SeqLib.zip -d ${BENCHMARK_DIR}/libs/
-    
-    cd ${BENCHMARK_DIR}/libs/SeqLib
-    mkdir build
-    cd build
-    cmake .. -DHTSLIB_DIR=${BENCHMARK_DIR}/libs/htslib/htslib_install
-    make
-    make install
-
-    update_env_path "SeqLib/build/bin/" "libs/SeqLib/build/bin/" "${ENV_FILE}"
-fi
-
-echo "Finished installing AUGUSTUS dependencies."
-
-if [ ! -d "${BENCHMARK_DIR}/tools/Augustus-3.5.0" ]; then
-    echo "Augustus was not downloaded. Please run get_tools.sh first."
-else
-    update_env_var "AUGUSTUS_CONFIG_PATH" "${BENCHMARK_DIR}/tools/Augustus-3.5.0/config" "${ENV_FILE}"
-    source ${ENV_FILE}
-
-    cd ${BENCHMARK_DIR}/tools/Augustus-3.5.0/
-    cp ${BENCHMARK_DIR}/config/augustus/common.mk ${BENCHMARK_DIR}/tools/Augustus-3.5.0/common.mk
-
-    make augustus
-
-    update_env_path "Augustus-3.5.0/bin" "/tools/Augustus-3.5.0/bin" "${ENV_FILE}"
-fi
-# --------------
-
 # Install SNAP
 if [ ! -d "${BENCHMARK_DIR}/tools/SNAP-master" ]; then
     echo "SNAP was not downloaded. Please run get_tools.sh first."
@@ -286,7 +124,7 @@ else
     source ${ENV_FILE}
 fi
 
-# Install GeNeMark-ETP
+# Install GeneMark-ETP
 if [ ! -d "${BENCHMARK_DIR}/tools/GeneMark-ETP" ]; then
     echo "GeneMark-ETP was not downloaded. Please run get_tools.sh first."
 else
